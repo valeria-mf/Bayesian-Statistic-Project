@@ -9,7 +9,7 @@ matrix_collection GibbsSampler_betabernoulli( double alpha, double theta, double
 
     /*STRATEGY:
      * When generatig a new matrix the null columns will be moved at the end instead of being removed.
-     * * Anyway, in the vector of matrices will be inserted matrices Z with only non null columns.
+     * * Anyway, in the vector of matrices  matrices Z with only non null columns will be inserted.
   */
 
 
