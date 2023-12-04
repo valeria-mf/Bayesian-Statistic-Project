@@ -74,11 +74,7 @@ Rcpp::List GibbsSampler_IBP(const double alpha,const double gamma,const double s
 
                 Z(i,count)=1;
                 M= update_M(M,Z.row(i));
-                /*double prob_xz_1=1/(pow(2*M_PI,n*D*0.5)* pow(sigma_x,(n-K)*D)*
-                                    pow(sigma_a,K*D)*
-                                    pow((Z.transpose()*Z + sigma_x*sigma_x/sigma_a/sigma_a*Eigen::MatrixXd::Identity(n_tilde,n_tilde)).determinant(),D*0.5) );
-                                    */
-
+          
                 long double prob_xz_1=1/(pow((Z.transpose()*Z + sigma_x*sigma_x/sigma_a/sigma_a*Eigen::MatrixXd::Identity(z_cols,z_cols)).determinant(),D*0.5) );
 
 
@@ -98,7 +94,7 @@ Rcpp::List GibbsSampler_IBP(const double alpha,const double gamma,const double s
 
                 long double prob_one_temp=prob_zz*prob_xz;
                 long double prob_zero_temp=(1-prob_zz)*prob_xz0;
-                long double prob_param=prob_one_temp/(prob_one_temp+prob_zero_temp); //PROBLEM: always too small
+                long double prob_param=prob_one_temp/(prob_one_temp+prob_zero_temp); 
             
 
 
