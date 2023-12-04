@@ -9,7 +9,7 @@
 #include <iostream>
 #include "Eigen/Dense"
 #include "Eigen/LU"
-#include "opencl-c-base.h"
+//#include "opencl-c-base.h"
 #include "random"
 #include <vector>
 using Eigen::VectorXd;
@@ -30,13 +30,13 @@ Eigen::MatrixXd update_M(MatrixXd &M,VectorXd z_i);
 Eigen::VectorXd fill_m(MatrixXd Z){
     Eigen::VectorXd m(Z.cols());
     m.setZero();
-    for(size_t i=0; i< Z.cols();++i)
+    for(Eigen::Index i=0; i< Z.cols();++i)
         m(i)=Z.col(i).sum();
     return m;
 }
 unsigned count_nonzero(Eigen::VectorXd &m){
     unsigned count=0;
-    for (size_t j=0; j<m.size();++j)
+    for (Eigen::Index j=0; j<m.size();++j)
         if (m(j)>0)
             ++count;
     return count;
@@ -44,7 +44,7 @@ unsigned count_nonzero(Eigen::VectorXd &m){
 
 
 std::pair<Eigen::MatrixXd, Eigen::VectorXd> eliminate_null_columns(Eigen::MatrixXd &Z) {
-    size_t cols = Z.cols();
+    Eigen::Index cols = Z.cols();
     Eigen::VectorXd m=fill_m(Z);
     size_t colnew=count_nonzero(m);
     MatrixXd Ret(Z.rows(), colnew);
@@ -53,7 +53,7 @@ std::pair<Eigen::MatrixXd, Eigen::VectorXd> eliminate_null_columns(Eigen::Matrix
     ret.setZero();
     size_t iter=0;
 
-    for (size_t i = 0; i < cols &&iter<colnew; ++i) {
+    for (Eigen::Index i = 0; i < cols &&iter<colnew; ++i) {
         if (Z.col(i).norm() > 0) {
             Ret.col(iter)=Z.col(i);
             ret(i)=1;
