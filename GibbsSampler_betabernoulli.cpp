@@ -14,19 +14,19 @@ Rcpp::List GibbsSampler_betabernoulli( double alpha, double theta, double sigma_
      * When generating a new matrix the null columns will be moved at the end instead of being removed.
      * * Anyway, in the vector of matrices  matrices Z with only non null columns will be inserted.
   */
-    Rcpp::Rcout << "Dimensioni di A: " << std::endl;
+   // Rcpp::Rcout << "Dimensioni di A: " << std::endl;
     Rcpp::NumericMatrix mat_A(A_);
     Rcpp::NumericMatrix mat_X(X_);
     
-    Rcpp::Rcout << "Numero di righe: " << mat_X.nrow() << std::endl;
-    Rcpp::Rcout << "Numero di colonne: " << mat_X.ncol() << std::endl;
+   // Rcpp::Rcout << "Numero di righe: " << mat_X.nrow() << std::endl;
+   // Rcpp::Rcout << "Numero di colonne: " << mat_X.ncol() << std::endl;
     
 
     Eigen::Map<Eigen::MatrixXd> A(Rcpp::as<Eigen::Map<Eigen::MatrixXd>>(mat_A));
     Eigen::Map<Eigen::MatrixXd> X(Rcpp::as<Eigen::Map<Eigen::MatrixXd>>(mat_X));
     
-    Rcpp::Rcout << "Dimensioni di A: " << A.rows() << " x " << A.cols() << std::endl;
-    Rcpp::Rcout << "Dimensioni di X: " << X.rows() << " x " << X.cols() << std::endl;
+ //   Rcpp::Rcout << "Dimensioni di A: " << A.rows() << " x " << A.cols() << std::endl;
+  //  Rcpp::Rcout << "Dimensioni di X: " << X.rows() << " x " << X.cols() << std::endl;
     
     
   
@@ -86,22 +86,10 @@ Rcpp::List GibbsSampler_betabernoulli( double alpha, double theta, double sigma_
                 long double prob_xz_1=1/(pow((Z.transpose()*Z + sigma_x*sigma_x/sigma_a/sigma_a*Eigen::MatrixXd::Identity(n_tilde,n_tilde)).determinant(),D*0.5) );
                 MatrixXd mat=X.transpose() * (Eigen::MatrixXd::Identity(n,n) - (Z * M * Z.transpose())) * X;
                 long double prob_xz_2=mat.trace()*(-1/(2*sigma_x*sigma_x));
-                //Rcpp::Rcout << M << std::endl;
-                for (Eigen::Index i = 0; i < M.rows(); ++i) {
-                  for (Eigen::Index j = 0; j < M.cols(); ++j) {
-                    std::cout << M(i, j) << " ";
-                  }
-                  std::cout << std::endl;
-                }
+               
 
                 long double prob_xz=prob_xz_1*exp(prob_xz_2);
-                
-                
-                //K è INDIPENDENTE DALLA SCELTA DI Z_IJ?????????????
-                
-                
-                
-                
+                    
 
                 //P(X|Z) when z_ij=1:
                 Z(i,count)=0;
@@ -121,9 +109,7 @@ Rcpp::List GibbsSampler_betabernoulli( double alpha, double theta, double sigma_
 
                 //sample from Bernoulli distribution:
                 std::bernoulli_distribution distribution_bern(prob_param);
-                //Poi da TOGLIERE
-                Rcpp::Rcout << "Prob param: " << prob_param  << std::endl;
-                
+              
                 Znew(i,j) = distribution_bern(generator) ? 1:0;
                 Z(i,count)=Znew(i,j);
 
