@@ -16,19 +16,14 @@ Rcpp::List GibbsSampler_IBP(const double alpha,const double gamma,const double s
      * this makes the algorithm to go really slow beacuse the complexity icreases.
      * WARNING: use gamma small beacuse otherwise the algorithm will be way slower
      * */
-    Rcpp::Rcout << "Dimensioni di A: " << std::endl;
+
     Rcpp::NumericMatrix mat_A(A_);
     Rcpp::NumericMatrix mat_X(X_);
     
-    Rcpp::Rcout << "Numero di righe: " << mat_X.nrow() << std::endl;
-    Rcpp::Rcout << "Numero di colonne: " << mat_X.ncol() << std::endl;
-    
-    
+ 
     Eigen::Map<Eigen::MatrixXd> A(Rcpp::as<Eigen::Map<Eigen::MatrixXd>>(mat_A));
     Eigen::Map<Eigen::MatrixXd> X(Rcpp::as<Eigen::Map<Eigen::MatrixXd>>(mat_X));
     
-    Rcpp::Rcout << "Dimensioni di A: " << A.rows() << " x " << A.cols() << std::endl;
-    Rcpp::Rcout << "Dimensioni di X: " << X.rows() << " x " << X.cols() << std::endl;
 
     // Initialization of Z and m
     MatrixXd Z(n,1);
@@ -104,8 +99,7 @@ Rcpp::List GibbsSampler_IBP(const double alpha,const double gamma,const double s
                 long double prob_one_temp=prob_zz*prob_xz;
                 long double prob_zero_temp=(1-prob_zz)*prob_xz0;
                 long double prob_param=prob_one_temp/(prob_one_temp+prob_zero_temp); //PROBLEM: always too small
-                //  std::cout << prob_param <<std::endl;
-
+            
 
 
                 //sample from Bernoulli distribution:
@@ -114,10 +108,6 @@ Rcpp::List GibbsSampler_IBP(const double alpha,const double gamma,const double s
 
                 Znew(i,j) = distribution_bern(generator) ? 1:0;
                 Z(i,count)=Znew(i,j);
-
-
-
-                //  std::cout << "Matrix M:\n" << M << "\n";
 
                 ++count;
             }
