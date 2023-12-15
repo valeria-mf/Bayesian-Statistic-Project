@@ -120,23 +120,58 @@ Rcpp::List GibbsSampler_betabernoulli( double alpha, double theta, double sigma_
             //sample the number of new features:
 
 
-            double prob =1-(theta+alpha+n-1)/(theta+n-1);
-            std::binomial_distribution<int> distribution_bin(n_tilde-K,prob);
-            int temp=distribution_bin(generator);
 
-            //update Z:
-            Eigen::Index j=0;
-            for(;j<Znew.cols();++j)
-                Z.col(j)=Znew.col(j);
-            for(;j<Znew.cols()+temp;++j)
-            {
-                Z.col(j).setZero();
-                Z(i,j)+=1;
+            unsigned n_res = n_tilde - K;
+            if(n_res>0){
+                //sample the number of new features:
+
+                //update Z-part1:
+                Eigen::Index j = 0;
+                for (; j < Znew.cols(); ++j)
+                    Z.col(j) = Znew.col(j);
+                for (Eigen::Index kk = j; kk < Z.cols(); ++kk)
+                    Z.col(kk).setZero();
+
+
+                M = (Z.transpose() * Z -
+                     Eigen::MatrixXd::Identity(n_tilde, n_tilde) * pow(sigma_x / sigma_a, 2)).inverse();
+
+
+                double prob = 1 - (theta + alpha + n - 1) / (theta + n - 1);
+
+                Eigen::VectorXd prob_new(n_res);
+                for (unsigned itt = 0; itt < n_res; ++itt) {
+                    double bin_prob = binomialProbability(n_res,prob, itt);
+                    Z(i, j+itt) = 1;
+                    M = update_M(M, Z.row(i));
+                    long double p_xz_1 = 1 / (pow((Z.transpose() * Z + sigma_x * sigma_x / sigma_a / sigma_a *
+                                                                       Eigen::MatrixXd::Identity(n_tilde,
+                                                                                                 n_tilde)).determinant(),
+                                                  D * 0.5));
+                    MatrixXd mat = X.transpose() * (Eigen::MatrixXd::Identity(n, n) - (Z * M * Z.transpose())) * X;
+                    long double p_xz_2 = mat.trace() * (-1 / (2 * sigma_x * sigma_x));
+
+                    double p_xz = p_xz_1 * exp(p_xz_2);
+                    prob_new(itt) = bin_prob * p_xz;
+                }
+
+
+                unsigned new_feat = find_max(prob_new);
+
+
+
+                //update Z-part2:
+                j--;
+                for (; j >= Znew.cols() + new_feat; --j) {
+                    Z(i, j) = 0;
+                }
             }
-            for(;j<Z.cols();++j)
-                Z.col(j).setZero();
 
-        }
+            else
+                Z=Znew;
+            
+            
+            }
 
         if(it>=initial_iters){
             Ret.push_back(eliminate_null_columns(Z).first);
