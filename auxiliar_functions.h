@@ -39,4 +39,11 @@ double poissonProbability(int k, double lambda);
 
 double metropolis_step_sigma(double current_sigma, const MatrixXd& Z, const MatrixXd& X, const MatrixXd& A, double proposal_variance, std::default_random_engine& generator, bool is_sigma_x);
 
+// Function to perform a Metropolis-Hastings step for sigma_x or sigma_a
+double metropolis_step_sigma(double current_sigma, const MatrixXd& Z, const MatrixXd& X, const MatrixXd& A, double proposal_variance, std::default_random_engine& generator, bool is_sigma_x,double prior_variance);
+
+// Function to sample A matrix
+MatrixXd sample_A(const MatrixXd& Z, const MatrixXd& X, double sigma_x, double sigma_a, std::default_random_engine& generator);
+
+
 #endif //AUXILIAR_FUNCTIONS_H
