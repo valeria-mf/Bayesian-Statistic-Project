@@ -52,9 +52,11 @@ print("X_ matrix:")
 print(X_)
 
 # Running the Gibbs Sampler
-result <- GibbsSampler_betabernoulli(alpha = -1, theta = 3, sigma_x = sigma_x,
-                                     sigma_a = sigma_a, n_tilde = 3 , n = N,
-                                     A = A_, X = X_, n_iter = 3, initial_iters = 1)
-
+result <- GibbsSampler_betabernoulli(
+  alpha = -7, theta = 16, sigma_x = sigma_x,
+  sigma_a = sigma_a, prior_variance_sigma_x = prior_variance_sigma_x, 
+  prior_variance_sigma_a = prior_variance_sigma_a, n_tilde = 30, n = N,
+  A = A_, X = X_, n_iter = 20, initial_iters = 1000
+)
 
 # You can add code here to analyze 'result', which should contain the output from your Gibbs sampler
