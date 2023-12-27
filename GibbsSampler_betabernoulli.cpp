@@ -154,10 +154,15 @@ Rcpp::List GibbsSampler_betabernoulli( double alpha, double theta, double sigma_
                     double p_xz = p_xz_1 * exp(p_xz_2);
                     prob_new(itt) = bin_prob * p_xz;
                 }
+        // Normalize posterior probabilities
+        double sum_posterior = prob_new.sum()
+          for (unsigned l=0;l<prob_new.size();++l) {
+            prob_new(l) /= sum_posterior;
+          }
 
-
-                unsigned new_feat = find_max(prob_new);
-
+              // Sample the number of new features based on posterior probabilities
+              std::discrete_distribution<int> distribution(prob_new.begin(), prob_new.end());
+              int new_feat = distribution(generator);
 
 
                 //update Z-part2:
