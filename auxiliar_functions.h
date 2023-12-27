@@ -104,6 +104,11 @@ double binomialProbability(unsigned n_res, double prob, unsigned k) {
     return binomial_coefficient * pow(prob, k) * pow(1 - prob, n_res - k);
 }
 
+double poissonProbability(int k, double lambda) {
+    return (exp(-lambda) * pow(lambda, k)) / tgamma(k + 1);
+}
+
+
 unsigned find_max(Eigen::VectorXd &vec){
     unsigned ret=0;
     double val=vec(0);
