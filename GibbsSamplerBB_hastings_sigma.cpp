@@ -73,90 +73,76 @@ Rcpp::List GibbsSampler_betabernoulli(double alpha, double theta, double sigma_x
         std::bernoulli_distribution distribution(prob_1);
         Z(i, count) = distribution(generator); // Sample the new value of Z(i, j) from the Bernoulli distribution
       }
-      //VECCHIO METODO per selezionare le new features:
-      // Sample the number of new features and Update Z matrix with new features:
-      double prob = 1-(theta+alpha+n-1)/(theta+n-1);
-      std::binomial_distribution<int> distribution_bin(n_tilde-K,prob);
-      int new_features=distribution_bin(generator);
-      if (new_features > 0) {
-        Znew = eliminate_null_columns(Z).first;
+       //sample the number of new features:
 
-        // Then, resize Znew and add new columns of ones
-        Znew.conservativeResize(Eigen::NoChange, Znew.cols() + new_features);
-        Znew.rightCols(new_features).setZero();
-        Znew.row(i).tail(new_features).setOnes();
 
-        // Update Z to be Znew
-        Z = Znew;
-      }
-      
-      // //METODO CON LA POSTERIOR PER SELEZIONARE NUOVE FEATURES(DA FARE QUALCHE CORREZIONE):
-      // //Vector to store posterior probabilities for each possible number of new features
-      // std::vector<double> posterior_probabilities(n_tilde - K + 1, 0.0); //utilizza eigen
-      // 
-      // MatrixXd Znew = eliminate_null_columns(Z).first;
-      // 
-      // for (int new_features = 0; new_features <= n_tilde - K; ++new_features) { //nel caso new_features = 0 va bene scrivere Z = Znew, altrimenti forse no, controlla
-      //   MatrixXd Z_temp = Znew; // Use a temporary matrix to avoid scope issues
-      // 
-      //   // Resize Z_temp and add new columns of ones for each potential new feature
-      //   Z_temp.conservativeResize(Eigen::NoChange, Z_temp.cols() + new_features); //potrebbe dare problemi
-      //   Z_temp.rightCols(new_features).setZero();
-      //   Z_temp.block(0, Z_temp.cols() - new_features, 1, new_features).setOnes(); // Set the last 'new_features' rows of the ith row to ones
-      // 
-      //   // Update M matrix for Z_temp
-      //   MatrixXd M_temp = (Z_temp.transpose() * Z_temp + MatrixXd::Identity(Z_temp.cols(), Z_temp.cols()) * pow(sigma_x / sigma_a, 2)).inverse();
-      // 
-      //   // Calculate likelihood with new features
-      //   long double likelihood_new_features = calculate_likelihood(Z_temp, X, M_temp, sigma_x, sigma_a, n_tilde, D, n);
-      // 
-      //   // Calculate the posterior probability for this number of new features
-      //   double prior_probability = (theta + alpha) / (theta + n);
-      //   double success_probability = 1.0 - prior_probability;
-      // 
-      //   if (success_probability >= 0.0 && success_probability <= 1.0) {
-      //     std::binomial_distribution<int> binomial_dist(new_features, success_probability);
-      //     double prior_prob = binomial_dist(generator);
-      //     posterior_probabilities[new_features] = likelihood_new_features * prior_prob;
-      //   } else {
-      //     Rcpp::Rcerr << "Invalid probability for binomial distribution: " << success_probability << std::endl;
-      //     return Rcpp::List::create(Rcpp::Named("error") = "Invalid probability for binomial distribution");
-      //   }
-      // }
-      // 
-      // // Normalize posterior probabilities
-      // double sum_posterior = std::accumulate(posterior_probabilities.begin(), posterior_probabilities.end(), 0.0);
-      // for (double& prob : posterior_probabilities) {
-      //   prob /= sum_posterior;
-      // }
-      // 
-      // // Sample the number of new features based on posterior probabilities
-      // std::discrete_distribution<int> distribution(posterior_probabilities.begin(), posterior_probabilities.end());
-      // int sampled_new_features = distribution(generator);
-      // 
-      // // Add the sampled number of new features to Znew
-      // Znew.conservativeResize(Eigen::NoChange, Znew.cols() + sampled_new_features);
-      // Znew.rightCols(sampled_new_features).setZero();
-      // Znew.block(0, Znew.cols() - sampled_new_features, 1, sampled_new_features).setOnes(); // Set the last 'sampled_new_features' rows of the ith row to ones
-      // 
-      // // Update Z to be Znew
-      // Z = Znew; //attento a sta roba
-     }
-    
-    // Store the Z matrix with non-null columns only after initial iterations
-    if (it >= initial_iters) {
-      Ret.push_back(eliminate_null_columns(Z).first);
+
+            unsigned n_res = n_tilde - K;
+            if(n_res>0){
+                //sample the number of new features:
+
+                //update Z-part1:
+                Eigen::Index j = 0;
+                for (; j < Znew.cols(); ++j)
+                    Z.col(j) = Znew.col(j);
+                for (Eigen::Index kk = j; kk < Z.cols(); ++kk)
+                    Z.col(kk).setZero();
+
+
+                M = (Z.transpose() * Z -
+                     Eigen::MatrixXd::Identity(n_tilde, n_tilde) * pow(sigma_x / sigma_a, 2)).inverse();
+
+
+                double prob = 1 - (theta + alpha + n - 1) / (theta + n - 1);
+
+                Eigen::VectorXd prob_new(n_res);
+                for (unsigned itt = 0; itt < n_res; ++itt) {
+                    double bin_prob = binomialProbability(n_res,prob, itt);
+                    Z(i, j+itt) = 1;
+                    M = update_M(M, Z.row(i));
+                    long double p_xz_1 = 1 / (pow((Z.transpose() * Z + sigma_x * sigma_x / sigma_a / sigma_a *
+                                                                       Eigen::MatrixXd::Identity(n_tilde,
+                                                                                                 n_tilde)).determinant(),
+                                                  D * 0.5));
+                    MatrixXd mat = X.transpose() * (Eigen::MatrixXd::Identity(n, n) - (Z * M * Z.transpose())) * X;
+                    long double p_xz_2 = mat.trace() * (-1 / (2 * sigma_x * sigma_x));
+
+                    double p_xz = p_xz_1 * exp(p_xz_2);
+                    prob_new(itt) = bin_prob * p_xz;
+                }
+                // Normalize posterior probabilities
+                double sum_posterior = prob_new.sum()
+                for (unsigned l=0;l<prob_new.size();++l) {
+                        prob_new(l) /= sum_posterior;
+                      }
+        
+               // Sample the number of new features based on posterior probabilities
+               std::discrete_distribution<int> distribution(prob_new.begin(), prob_new.end());
+               int new_feat = distribution(generator);
+
+
+                //update Z-part2:
+                j--;
+                for (; j >= Znew.cols() + new_feat; --j) {
+                    Z(i, j) = 0;
+                }
+            }
+
+            else
+                Z=Znew;
+            
+            
+            }
+
+        if(it>=initial_iters){
+            Ret.push_back(eliminate_null_columns(Z).first);
+
+        }
+
     }
-    for (Eigen::Index i = 0; i < Z.rows(); ++i) {
-      for (Eigen::Index j = 0; j < Z.cols(); ++j) {
-        std::cout << Z(i, j) << " ";
-      }
-      std::cout << std::endl;
-    }
-  }
-  
-  // Return the result as a List containing the matrices and K_vector
+
+
+ // Return the result as a List containing the matrices and K_vector
   return Rcpp::List::create(Rcpp::Named("result") = Ret, Rcpp::Named("K_vector") = K_vector);
 
 }
-
