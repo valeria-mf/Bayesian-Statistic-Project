@@ -120,5 +120,28 @@ double metropolis_step_sigma(double current_sigma, const MatrixXd& Z, const Matr
   }
 }
 
-
+// Function to sample A matrix
+MatrixXd sample_A(const MatrixXd& Z, const MatrixXd& X, double sigma_x, double sigma_a, std::default_random_engine& generator) {
+  unsigned K = Z.cols(); // Number of features
+  unsigned D = X.cols(); // Dimension of data
+  
+  // Posterior precision and covariance
+  MatrixXd Sigma_posterior_inv = (1 / (sigma_x * sigma_x)) * Z.transpose() * Z + (1 / (sigma_a * sigma_a)) * MatrixXd::Identity(K, K);
+  LLT<MatrixXd> llt(Sigma_posterior_inv); // Cholesky decomposition for numerical stability
+  MatrixXd Sigma_posterior = llt.solve(MatrixXd::Identity(K, K)); // Invert the precision matrix
+  
+  // Posterior mean
+  MatrixXd mu_posterior = Sigma_posterior * (Z.transpose() * X) / (sigma_x * sigma_x);
+  
+  // Sample from the posterior distribution for A
+  MatrixXd new_A(K, D);
+  for (unsigned k = 0; k < K; ++k) {
+    for (unsigned d = 0; d < D; ++d) {
+      std::normal_distribution<double> dist(mu_posterior(k, d), sqrt(Sigma_posterior(k, k)));
+      new_A(k, d) = dist(generator);
+    }
+  }
+  
+  return new_A;
+}
 
