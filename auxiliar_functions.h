@@ -34,6 +34,7 @@ Eigen::MatrixXd update_M(MatrixXd &M,VectorXd z_i);
 unsigned find_max(Eigen::VectorXd &vec);
 unsigned factorial(unsigned n);
 double binomialProbability(unsigned n_res, double prob, unsigned k);
+double poissonProbability(int k, double lambda);
 
 Eigen::VectorXd fill_m(MatrixXd Z){
     Eigen::VectorXd m(Z.cols());
