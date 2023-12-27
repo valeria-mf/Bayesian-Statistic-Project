@@ -37,5 +37,6 @@ double binomialProbability(unsigned n_res, double prob, unsigned k);
 // Function to calculate the probability of k = certain value in poisson distribution
 double poissonProbability(int k, double lambda);
 
+double metropolis_step_sigma(double current_sigma, const MatrixXd& Z, const MatrixXd& X, const MatrixXd& A, double proposal_variance, std::default_random_engine& generator, bool is_sigma_x);
 
 #endif //AUXILIAR_FUNCTIONS_H
