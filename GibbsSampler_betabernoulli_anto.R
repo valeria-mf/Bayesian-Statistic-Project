@@ -20,6 +20,11 @@ sigma_x <- 1
 sigma_a <- 1
 mean_a <- 0
 
+# Define the prior variances for sigma_x and sigma_a
+prior_variance_sigma_x <- 1  # Set this to your chosen value
+prior_variance_sigma_a <- 1  # Set this to your chosen value
+
+
 # Function to generate a random binary matrix
 generateRandomMatrix <- function(N, K) {
   randomVector <- sample(0:1, N * K, replace = TRUE)
