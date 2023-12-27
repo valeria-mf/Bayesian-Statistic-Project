@@ -67,6 +67,17 @@ long double calculate_likelihood(const MatrixXd& Z, const MatrixXd& X, const Mat
   return prob_xz_1*exp(prob_xz_2);
 }
 
+// Function to calculate the probability of k = certain value in binomial distribution
+double binomialProbability(unsigned n_res, double prob, unsigned k) {
+    double binomial_coefficient = factorial(n_res) / (factorial(k) * factorial(n_res - k));
+    return binomial_coefficient * pow(prob, k) * pow(1 - prob, n_res - k);
+}
+
+double poissonProbability(int k, double lambda) {
+    return (exp(-lambda) * pow(lambda, k)) / tgamma(k + 1);
+}
+
+
 
 
 
