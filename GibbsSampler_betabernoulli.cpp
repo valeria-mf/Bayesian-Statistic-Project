@@ -26,11 +26,11 @@ Rcpp::List GibbsSampler_betabernoulli( double alpha, double theta, double sigma_
     MatrixXd Z = Eigen::MatrixXd::Zero(n, n_tilde);
     VectorXd m(n_tilde);
 
-   std::bernoulli_distribution Z_initializer(0.5);
+     std::bernoulli_distribution Z_initializer(0.5);
     for(unsigned i=0; i< n ; ++i)
         for(unsigned j=0; j<n_tilde;++j)
             Z(i, j) = Z_initializer(generator) ? 1 : 0;
-    std::cout<< Z << std::endl;
+  //  std::cout<< Z << std::endl;
 
 
     VectorXd m(n_tilde);
@@ -124,45 +124,6 @@ Rcpp::List GibbsSampler_betabernoulli( double alpha, double theta, double sigma_
                 ++count;
             }
 
-            unsigned n_res = n_tilde - K;
-            if (n_res > 0) {
-                //sample the number of new features:
-
-                //update Z-part1:
-                Eigen::Index j = 0;
-                for (; j < Znew.cols(); ++j)
-                    Z.col(j) = Znew.col(j);
-                for (Eigen::Index kk = j; kk < Z.cols(); ++kk)
-                    Z.col(kk).setZero();
-
-
-                M = (Z.transpose() * Z -
-                     Eigen::MatrixXd::Identity(n_tilde, n_tilde) * pow(sigma_x / sigma_a, 2)).inverse();
-
-
-                double prob = 1 - (theta + alpha + n - 1) / (theta + n - 1);
-
-                Eigen::VectorXd prob_new(n_res);
-                for (unsigned itt = 0; itt < n_res; ++itt) {
-                    double bin_prob = binomialProbability(n_res, prob, itt);
-                    Z(i, j + itt) = 1;
-                    M = update_M(M, Z.row(i));
-                    long double p_xz_1 = 1 / (pow((Z.transpose() * Z + sigma_x * sigma_x / sigma_a / sigma_a *
-                                                                       Eigen::MatrixXd::Identity(n_tilde,
-                                                                                                 n_tilde)).determinant(),
-                                                  D * 0.5));
-                    MatrixXd mat = X.transpose() * (Eigen::MatrixXd::Identity(n, n) - (Z * M * Z.transpose())) * X;
-                    long double p_xz_2 = mat.trace() * (-1 / (2 * sigma_x * sigma_x));
-
-                    double p_xz = p_xz_1 * exp(p_xz_2);
-                    prob_new(itt) = bin_prob * p_xz;
-                }
-
-
-                //sample the number of new features:
-
-
-
                 unsigned n_res = n_tilde - K;
                 if (n_res > 0) {
                     //sample the number of new features:
@@ -212,17 +173,12 @@ Rcpp::List GibbsSampler_betabernoulli( double alpha, double theta, double sigma_
                     for (; j >= Znew.cols() + new_feat; --j) {
                         Z(i, j) = 0;
                     }
-                } //else
-                   // Z = Znew;
 
-
-            }
+                }
         }
 
-            if(it>=initial_iters){
+            if(it>=initial_iters)
                 Ret.push_back(eliminate_null_columns(Z).first);
-
-            }
 
         }
 
