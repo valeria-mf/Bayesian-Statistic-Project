@@ -2,6 +2,14 @@
 #include "auxiliar_functions.h"
 #include <algorithm>
 
+
+//Factorial:
+unsigned factorial(unsigned n){
+    if (n==0 || n==1)
+        return 1;
+    return n * factorial(n-1);
+}
+
 // Function to fill vector m with the sum of each column of Z
 Eigen::VectorXd fill_m(const MatrixXd& Z) {
   Eigen::VectorXd m(Z.cols());
@@ -76,7 +84,7 @@ double binomialProbability(unsigned n_res, double prob, unsigned k) {
 double poissonProbability(int k, double lambda) {
     return (exp(-lambda) * pow(lambda, k)) / tgamma(k + 1);
 }
-
+/*
 // Function to perform a Metropolis-Hastings step for sigma_x or sigma_a
 double metropolis_step_sigma(double current_sigma, const MatrixXd& Z, const MatrixXd& X, 
                              const MatrixXd& A, double proposal_variance, std::default_random_engine& generator, 
@@ -144,4 +152,4 @@ MatrixXd sample_A(const MatrixXd& Z, const MatrixXd& X, double sigma_x, double s
   
   return new_A;
 }
-
+*/
