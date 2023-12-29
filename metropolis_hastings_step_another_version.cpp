@@ -1,5 +1,5 @@
 #include "auxiliar_functions.h"
-
+//qualche modifica (forse non proprio esatta) al precedente algoritmo. In particolare questo serve per SIGMA_A
 double metropolis_step_sigma_a(double current_sigma, const MatrixXd& Z, const MatrixXd& X,
                              const MatrixXd& A, double std_dev, std::default_random_engine& generator, double sigma,
                             double prior_variance=1) {
