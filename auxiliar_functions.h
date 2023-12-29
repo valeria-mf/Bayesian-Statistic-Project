@@ -16,6 +16,9 @@ using Eigen::VectorXd;
 // Define a type alias for a collection of matrices
 typedef std::vector<Eigen::MatrixXd> matrix_collection;
 
+//Factorial:
+unsigned factorial(unsigned n);
+
 // Function to fill vector m with the sum of each column of Z
 Eigen::VectorXd fill_m(const MatrixXd& Z);
 
