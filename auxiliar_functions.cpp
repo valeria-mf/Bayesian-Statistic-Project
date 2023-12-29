@@ -173,7 +173,7 @@ MatrixXd sample2_A(const MatrixXd& Z, const MatrixXd& X, double sigma_x, double 
   c = 1 // per ora è un numero a caso
   Eigen::VectorXd mu_posterior(D);
   for(unsigned d=0; d<D; ++d) {
-    std::normal_distribution<double> distr(0, c*Sigma_posterior);
+    std::normal_distribution<double> distr(0, c*Sigma_posterior); // sampling dei valori della media elemento per elemento
     mu_posterior(d) = distr(generator);
   }
 
@@ -183,25 +183,10 @@ MatrixXd sample2_A(const MatrixXd& Z, const MatrixXd& X, double sigma_x, double 
   for(unsigned k=0; k<K; ++k) {
     for(unsigned d=0; d<D; ++d) {
       std::normal_distribution<double> distr(mu_posterior[d], Sigma_posterior);
-      new_A[k,d] = distr(generator);
+      new_A[k,d] = distr(generator); // sampling dei valori di A elemento per elemento
     }
   }
   return new_A;
   }
   // Fine 4.2
-
-
-
-
-  
-  
-  for (unsigned k = 0; k < K; ++k) {
-    for (unsigned d = 0; d < D; ++d) {
-      std::normal_distribution<double> dist(mu_posterior(k, d), sqrt(Sigma_posterior(k, k)));
-      new_A(k, d) = dist(generator);
-    }
-  }
-  
-  return new_A;
-}
 */
