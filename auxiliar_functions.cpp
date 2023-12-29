@@ -128,7 +128,7 @@ double metropolis_step_sigma(double current_sigma, const MatrixXd& Z, const Matr
   }
 }
 
-// Function to sample A matrix
+// Function to sample A gaussian matrix (4.1)
 MatrixXd sample_A(const MatrixXd& Z, const MatrixXd& X, double sigma_x, double sigma_a, std::default_random_engine& generator) {
   unsigned K = Z.cols(); // Number of features
   unsigned D = X.cols(); // Dimension of data
@@ -139,10 +139,62 @@ MatrixXd sample_A(const MatrixXd& Z, const MatrixXd& X, double sigma_x, double s
   MatrixXd Sigma_posterior = llt.solve(MatrixXd::Identity(K, K)); // Invert the precision matrix
   
   // Posterior mean
-  MatrixXd mu_posterior = Sigma_posterior * (Z.transpose() * X) / (sigma_x * sigma_x);
+  MatrixXd mu_posterior = Sigma_posterior * (Z.transpose() * X) / (sigma_x * sigma_x); // formula usata da antonio
+  MatrixXd mu_posterior = (Z.transpose() * Z + sigma_x^2 * MatrixXd::Identity(Z.cols(),Z.cols()) / sigma_a^2).inv() * Z.transpose() * X; // formula secondo me (giuseppe)
   
   // Sample from the posterior distribution for A
   MatrixXd new_A(K, D);
+  for (unsigned k = 0; k < K; ++k) {
+    for (unsigned d = 0; d < D; ++d) {
+      std::normal_distribution<double> dist(mu_posterior(k, d), sqrt(Sigma_posterior(k, k)));
+      new_A(k, d) = dist(generator);
+    }
+  }
+  
+  return new_A;
+}
+
+
+
+
+// Function to sample A matrix with new prior (4.2)
+MatrixXd sample2_A(const MatrixXd& Z, const MatrixXd& X, double sigma_x, double sigma_a, std::default_random_engine& generator) {
+  unsigned K = Z.cols(); // Number of features
+  unsigned D = X.cols(); // Dimension of data
+  
+  // Posterior precision and covariance
+  a = 1; // per ora è un numero a caso
+  b = 1; // idem
+  std::gamma_distribution<double> distr(a, b) // bisogna capire cosa mettere come a e b
+  double Sigma_posterior = pow(distr(generator),-1) // sto facendo sampling da una gamma
+  
+  
+  // Posterior mean
+  c = 1 // per ora è un numero a caso
+  Eigen::VectorXd mu_posterior(D);
+  for(unsigned d=0; d<D; ++d) {
+    std::normal_distribution<double> distr(0, c*Sigma_posterior);
+    mu_posterior(d) = distr(generator);
+  }
+
+  
+  // Sample from the posterior distribution for A
+  MatrixXd new_A(K, D);
+  for(unsigned k=0; k<K; ++k) {
+    for(unsigned d=0; d<D; ++d) {
+      std::normal_distribution<double> distr(mu_posterior[d], Sigma_posterior);
+      new_A[k,d] = distr(generator);
+    }
+  }
+  return new_A;
+  }
+  // Fine 4.2
+
+
+
+
+  
+  
   for (unsigned k = 0; k < K; ++k) {
     for (unsigned d = 0; d < D; ++d) {
       std::normal_distribution<double> dist(mu_posterior(k, d), sqrt(Sigma_posterior(k, k)));
