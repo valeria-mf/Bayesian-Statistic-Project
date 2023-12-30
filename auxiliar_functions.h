@@ -48,5 +48,8 @@ double metropolis_step_sigma(double current_sigma, const MatrixXd& Z, const Matr
 // Function to sample A matrix
 MatrixXd sample_A(const MatrixXd& Z, const MatrixXd& X, double sigma_x, double sigma_a, std::default_random_engine& generator);
 
+//4.2
+MatrixXd sample2_A(const MatrixXd& Z, const MatrixXd& X, double sigma_x, double sigma_a, std::default_random_engine& generator);
+
 
 #endif //AUXILIAR_FUNCTIONS_H
