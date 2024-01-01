@@ -59,5 +59,7 @@ MatrixXd sample_A(const MatrixXd& Z, const MatrixXd& X, double sigma_x, double s
 //4.2
 MatrixXd sample2_A(const MatrixXd& Z, const MatrixXd& X, double sigma_x, double sigma_a, std::default_random_engine& generator);
 
+// Required for the computation of log[P(X,Z)]
+double compute_cardinality(const Eigen::MatrixXd Z);
 
 #endif //AUXILIAR_FUNCTIONS_H
