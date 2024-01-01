@@ -84,6 +84,68 @@ double binomialProbability(unsigned n_res, double prob, unsigned k) {
 double poissonProbability(int k, double lambda) {
     return (exp(-lambda) * pow(lambda, k)) / tgamma(k + 1);
 }
+
+
+// Per il calcolo delle log[P(X|Z)]
+double compute_cardinality(Eigen::MatrixXd Z) {
+    
+    int base_ten;
+    int k=0;
+    Eigen::VectorXd histories = Eigen::VectorXd::Constant(Z.cols(), -1);
+    Eigen::VectorXd occurrences = Eigen::VectorXd::Constant(Z.cols(), 0); // con una unordered map sarebbe molto meglio, ma ad Eigen non piacciono gli iteratori :(
+   
+    for(size_t i=0;i<Z.cols();++i){
+        base_ten = 0;
+        for(size_t j=0; j<Z.rows();++j){
+            if(Z(j,i)==1){
+                base_ten+=pow(2,Z.rows()-j-1); // la colonne di Z vengono lette in binario dall'alto in basso e trasformata in base 10
+                // lo faccio per identificare univocamente e facilmente features con la stessa storia (colonne uguali => base_ten uguali)
+                // potrà anche tornare utile per creare la left_order_form (dove potremo ordinare le colonne da sx a dx in ordine decrescente di numero base_ten)
+            }
+        }
+/*
+        Rcpp::cout << "base_ten da inserire: " << base_ten << endl;
+        Rcpp::cout << "queste sono le histories fino ad ora: " << histories << endl;
+        Rcpp::cout << "E queste le loro occurrences : " << occurrences << endl;
+*/
+        for(k=0;k<occurrences.size();++k){
+            if(histories(k)==base_ten){            // se la base_10 della i-esima colonna di Z è già stata messa in histories
+                occurrences(k)+=1;                 // allora ne aumento il contatore di occorrenze
+                break;
+            }
+        }
+
+        if(k == occurrences.size()){               // alternativamente, avremo trovato una nuova history...
+            size_t w = 0;
+            while(occurrences(w) != 0 && w < occurrences.size()){
+                w=w+1;
+            }
+            histories(w) = base_ten;                // che cataloghiamo nel primo slot libero di histories
+            occurrences(w) = 1;                     // con contatore di occorrenze in occurrences inizializzato ad 1
+        }
+    }
+
+    double log_cardinality = 0;                        
+    int current_occurrence = 0;                   
+    int q = 1;
+
+    //Rcpp::cout << "occurrences: " << occurrences << endl;
+    for(int p=Z.cols();p>0;p--){
+        if(q>occurrences(current_occurrence)){
+            q = 1;
+            current_occurrence++;
+        }
+        //Rcpp::cout << "log-cardinality is: " << log_cardinality << endl;
+        //Rcpp::cout << "p/q: " << p << "/" << q << endl;
+        log_cardinality = log_cardinality+log(p)-log(q);
+        q++;
+    }
+
+    //Rcpp::cout << "cardinality is: " << log_cardinality << endl;
+    return log_cardinality;
+}
+
+
 /*
 // Function to perform a Metropolis-Hastings step for sigma_x or sigma_a
 double metropolis_step_sigma(double current_sigma, const MatrixXd& Z, const MatrixXd& X, 
