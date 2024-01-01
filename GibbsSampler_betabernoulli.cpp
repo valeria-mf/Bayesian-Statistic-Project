@@ -6,6 +6,10 @@
 
 #include "auxiliar_functions.h"
 
+#include <cmath>
+#define pi 3.1415926535897932
+
+
 
 //[[Rcpp::export]]
 Rcpp::List GibbsSampler_betabernoulli( double alpha, double theta, double sigma_x,double sigma_a,  int n_tilde,  int n,  SEXP A_, SEXP X_, unsigned n_iter, unsigned initial_iters){
@@ -173,15 +177,61 @@ Rcpp::List GibbsSampler_betabernoulli( double alpha, double theta, double sigma_
                     for (; j >= Znew.cols() + new_feat; --j) {
                         Z(i, j) = 0;
                     }
-
                 }
         }
 
+
+
+        
+        //Alla fine di ogni iterazione calcolo la quantità log[P(X|Z)]
+        //----------------------------------------------------------------------
+
+        //Per il BB utilizzo Eq 21 e 12:
+
+        int K = A.rows();
+        int D = A.cols();
+
+        // Eq 21 dopo averla messa nel logaritmo:
+
+        long double eq_21_log_denominator = -(n * D / 2) * log(2 * pi) - (n - K) * D * log(sigma_x) - K * D * log(sigma_a) - D / 2 *log((Z.transpose() *Z + sigma_x * sigma_x /sigma_a /sigma_a *Eigen::MatrixXd::Identity(Z.cols(), Z.cols())).determinant());                                                                                    //
+
+        Eigen::MatrixXd MM = (Z.transpose() * Z + sigma_x * sigma_x / sigma_a / sigma_a *Eigen::MatrixXd::Identity(Z.cols(), Z.cols())).inverse();
+
+        MatrixXd matmat = X.transpose() * (Eigen::MatrixXd::Identity(n, n) - (Z * MM * Z.transpose())) * X;
+        long double eq_21_log_exponential = -matmat.trace() / sigma_x / sigma_x / 2;
+        long double eq_21_log = eq_21_log_denominator + eq_21_log_exponential;
+        
+        // Rcpp::Rcout << "eq_21_log_denominator + eq_21_log_exponential = " << eq_21_log_denominator << " + " << eq_21_log_exponential << " = " << eq_21_log << endl;
+
+        // eq 12 dopo averla messa nel logaritmo
+
+        long double eq_12_log_fraction = compute_cardinality(Z);
+
+        Eigen::VectorXd mm = fill_m(Z);
+        long double eq_12_log_product = 0;
+        for (size_t k = 0; k < K; k++) {
+            eq_12_log_product += log(-alpha / K) + log(tgamma(mm(k) + alpha / K)) + log(tgamma(n - mm(k) + 1)) - log(tgamma(n + 1 + alpha / K));
+        }
+        long double eq_12_log = eq_12_log_fraction + eq_12_log_product; // A volte ritorna valori positivi: questo implica che P(Z)>1 che è impossibile.
+                                                                        // CALCOLI DA RIVEDERE
+
+        // Rcpp::Rcout << "eq_12_log = eq_12_log_fraction + eq_12_log_product = " << eq_12_log_fraction << " + " << eq_12_log_product << " = " << eq_12_log << endl;
+
+        // log[P(X,Z)] = log[P(X|Z)P(Z)] = log[P(X|Z)] + log[P(Z)]       (log(Equation 21) + log(Equation 12))
+
+        long double pXZ_log = eq_12_log + eq_21_log;
+        // Rcpp::Rcout << "pXZ_log = eq_12_log + eq_21_log = " <<  eq_12_log << " + " << eq_21_log << " = " << pXZ_log << std::endl;
+        
+        //----------------------------------------------------------------------
+        //FINE calcolo log[P(X|Z)]
+
+
+
+
+
+        
             if(it>=initial_iters)
                 Ret.push_back(eliminate_null_columns(Z).first);
-
         }
-
-
     return Rcpp::List::create(Rcpp::Named("result") = Ret);
 }
