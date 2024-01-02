@@ -8,7 +8,14 @@ using namespace Eigen;
 
 //[[Rcpp::export]]
 Rcpp::List GibbsSampler_betabernoulli( double alpha, double theta, double sigma_x,double sigma_a,  int n_tilde,  int n,  SEXP A_, SEXP X_, unsigned n_iter, unsigned initial_iters){
-
+    /*
+    Aggiungo qui, come commento, una call in cui aggiungo 2 input prior_variance_sigma_x e prior_variance_sigma_a alla funzione 
+    GibbsSampler_betabernoulli, usati poi più in basso nelle funzioni per il metropolis-hastings per impostare una prior su sigma_x e sigma_a:
+    
+    Rcpp::List GibbsSampler_betabernoulli( double alpha, double theta, double sigma_x,double sigma_a,double prior_variance_sigma_x, 
+    double prior_variance_sigma_a,  int n_tilde,  int n, SEXP A_, SEXP X_, unsigned n_iter, unsigned initial_iters)
+    
+    */
     /*STRATEGY:
      * When generating a new matrix the null columns will be moved at the end instead of being removed.
      * * Anyway, in the vector of matrices  matrices Z with only non null columns will be inserted.
@@ -52,10 +59,6 @@ Rcpp::List GibbsSampler_betabernoulli( double alpha, double theta, double sigma_
         double proposal_variance_factor_sigma_x = 0.1 * sigma_x; // e.g., 10% of current sigma_x
         double proposal_variance_factor_sigma_a = 0.1 * sigma_a; // e.g., 10% of current sigma_a
 
-        //This represents the variance of the prior distribution of the parameter
-        double prior_variance_sigma_a = 1;
-        double prior_variance_sigma_x = 1;
-    
         // Update sigma_x using the metropolis_step_sigma_x function
         sigma_x = metropolis_step_sigma_x(
             sigma_x, // Current value of sigma_x
