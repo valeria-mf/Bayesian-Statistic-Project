@@ -40,3 +40,10 @@ for (i in 1:N){
 result <- GibbsSampler_betabernoulli(alpha=-7, theta=16, sigma_x=sigma_x, sigma_a=sigma_a,
                                      n_tilde=30, N, A_=A_, X_=X_, n_iter=20, initial_iters=1000)
 
+/*
+prior_variance_sigma_x = 1
+prior_variance_sigma_a = 1
+GibbsSampler_betabernoulli( alpha = -7, theta = 16, sigma_x 0 sigma_x,sigma_a = sigma_a,prior_variance_sigma_x = prior_variance_sigma_x, 
+    prior_variance_sigma_a = prior_variance_sigma_a,  n_tilde = 30, n = N, A_ = A_, X_ = X_, n_iter = 20, initial_iters = 1000)
+*/
+
