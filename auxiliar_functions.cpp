@@ -147,47 +147,61 @@ double compute_cardinality(Eigen::MatrixXd Z) {
 
 
 /*
-// Function to perform a Metropolis-Hastings step for sigma_x or sigma_a
-double metropolis_step_sigma(double current_sigma, const MatrixXd& Z, const MatrixXd& X, 
-                             const MatrixXd& A, double proposal_variance, std::default_random_engine& generator, 
-                             bool is_sigma_x,double prior_variance) {
-  std::normal_distribution<double> proposal_dist(current_sigma, sqrt(proposal_variance));
-  double new_sigma = proposal_dist(generator);
+// Function to perform a Metropolis-Hastings step for sigma_x
+double metropolis_step_sigma_x(double current_sigma_x, const MatrixXd& Z, const MatrixXd& X, 
+                               const MatrixXd& A, double sigma_a, double proposal_variance,
+                               std::default_random_engine& generator, double prior_variance) {
+  // Generate a proposal for new sigma_x
+  std::normal_distribution<double> proposal_dist(current_sigma_x, sqrt(proposal_variance));
+  double new_sigma_x = proposal_dist(generator);
+  if (new_sigma_x <= 0) return current_sigma_x; // Ensure proposed sigma_x is positive
   
-  if (new_sigma <= 0) return current_sigma; // Ensure proposed sigma is positive
+  // Calculate log likelihood for current and proposed sigma_x
+  MatrixXd M_current = (Z.transpose() * Z + MatrixXd::Identity(Z.cols(), Z.cols()) * pow(current_sigma_x/sigma_a, 2)).inverse();
+  double current_log_likelihood = calculate_log_likelihood(Z, X, M_current, current_sigma_x, sigma_a, Z.cols(), A.cols(), Z.rows());
   
-  double current_log_likelihood, new_log_likelihood;;
+  MatrixXd M_new = (Z.transpose() * Z + MatrixXd::Identity(Z.cols(), Z.cols()) * pow(new_sigma_x/sigma_a, 2)).inverse();
+  double new_log_likelihood = calculate_log_likelihood(Z, X, M_new, new_sigma_x, sigma_a, Z.cols(), A.cols(), Z.rows());
   
-  if (is_sigma_x) {
-    // Calculate log likelihood with the current and new sigma_x
-    MatrixXd M = (Z.transpose() * Z + MatrixXd::Identity(Z.cols(), Z.cols()) * pow(current_sigma / sigma_a, 2)).inverse();
-    current_log_likelihood = calculate_log_likelihood(Z, X, M, current_sigma, sigma_a, Z.cols(), A.cols(), Z.rows());
-    
-    M = (Z.transpose() * Z + MatrixXd::Identity(Z.cols(), Z.cols()) * pow(new_sigma / sigma_a, 2)).inverse();
-    new_log_likelihood = calculate_log_likelihood(Z, X, M, new_sigma, sigma_a, Z.cols(), A.cols(), Z.rows());
-  } else {
-    // Calculate log likelihood with the current and new sigma_a
-    MatrixXd M = (Z.transpose() * Z + MatrixXd::Identity(Z.cols(), Z.cols()) * pow(sigma_x / current_sigma, 2)).inverse();
-    current_log_likelihood = calculate_log_likelihood(Z, X, M, sigma_x, current_sigma, Z.cols(), A.cols(), Z.rows());
-    
-    M = (Z.transpose() * Z + MatrixXd::Identity(Z.cols(), Z.cols()) * pow(sigma_x / new_sigma, 2)).inverse();
-    new_log_likelihood = calculate_log_likelihood(Z, X, M, sigma_x, new_sigma, Z.cols(), A.cols(), Z.rows());
-  }
-  
-  // Calculate log-prior for current and proposed sigma
-  double current_log_prior = -0.5 * current_sigma * current_sigma / prior_variance;
-  double new_log_prior = -0.5 * new_sigma * new_sigma / prior_variance;
+  // Calculate log-prior for current and proposed sigma_x
+  double current_log_prior = -0.5 * pow(current_sigma_x, 2) / prior_variance;
+  double new_log_prior = -0.5 * pow(new_sigma_x, 2) / prior_variance;
   
   // Compute the log of the acceptance ratio
   double log_acceptance_ratio = (new_log_likelihood + new_log_prior) - (current_log_likelihood + current_log_prior);
   
   // Decide whether to accept the new value
   std::uniform_real_distribution<double> uniform(0.0, 1.0);
-  if (log(uniform(generator)) < log_acceptance_ratio) {
-    return new_sigma; // Accept the new value
-  } else {
-    return current_sigma; // Reject the new value
-  }
+  return log(uniform(generator)) < log_acceptance_ratio ? new_sigma_x : current_sigma_x;
+}
+
+
+// Function to perform a Metropolis-Hastings step for sigma_a
+double metropolis_step_sigma_a(double current_sigma_a, const MatrixXd& Z, const MatrixXd& X, 
+                               const MatrixXd& A, double sigma_x, double proposal_variance,
+                               std::default_random_engine& generator, double prior_variance) {
+  // Generate a proposal for new sigma_a
+  std::normal_distribution<double> proposal_dist(current_sigma_a, sqrt(proposal_variance));
+  double new_sigma_a = proposal_dist(generator);
+  if (new_sigma_a <= 0) return current_sigma_a; // Ensure proposed sigma_a is positive
+  
+  // Calculate log likelihood for current and proposed sigma_a
+  MatrixXd M_current = (Z.transpose() * Z + MatrixXd::Identity(Z.cols(), Z.cols()) * pow(sigma_x/current_sigma_a, 2)).inverse();
+  double current_log_likelihood = calculate_log_likelihood(Z, X, M_current, sigma_x, current_sigma_a, Z.cols(), A.cols(), Z.rows());
+  
+  MatrixXd M_new = (Z.transpose() * Z + MatrixXd::Identity(Z.cols(), Z.cols()) * pow(sigma_x/new_sigma_a, 2)).inverse();
+  double new_log_likelihood = calculate_log_likelihood(Z, X, M_new, sigma_x, new_sigma_a, Z.cols(), A.cols(), Z.rows());
+  
+  // Calculate log-prior for current and proposed sigma_a
+  double current_log_prior = -0.5 * pow(current_sigma_a, 2) / prior_variance;
+  double new_log_prior = -0.5 * pow(new_sigma_a, 2) / prior_variance;
+  
+  // Compute the log of the acceptance ratio
+  double log_acceptance_ratio = (new_log_likelihood + new_log_prior) - (current_log_likelihood + current_log_prior);
+  
+  // Decide whether to accept the new value
+  std::uniform_real_distribution<double> uniform(0.0, 1.0);
+  return log(uniform(generator)) < log_acceptance_ratio ? new_sigma_a : current_sigma_a;
 }
 
 // Function to sample A gaussian matrix (4.1)
