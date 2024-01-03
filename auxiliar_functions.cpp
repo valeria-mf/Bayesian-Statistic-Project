@@ -159,7 +159,7 @@ double compute_cardinality(Eigen::MatrixXd Z) {
 }
 
 
-/*
+
 // Function to perform a Metropolis-Hastings step for sigma_x
 double metropolis_step_sigma_x(double current_sigma_x, const MatrixXd& Z, const MatrixXd& X, 
                                const MatrixXd& A, double sigma_a, double proposal_variance,
@@ -217,6 +217,7 @@ double metropolis_step_sigma_a(double current_sigma_a, const MatrixXd& Z, const 
   return log(uniform(generator)) < log_acceptance_ratio ? new_sigma_a : current_sigma_a;
 }
 
+/*
 // Function to sample A gaussian matrix (4.1)
 MatrixXd sample_A(const MatrixXd& Z, const MatrixXd& X, double sigma_x, double sigma_a, std::default_random_engine& generator) {
   unsigned K = Z.cols(); // Number of features
