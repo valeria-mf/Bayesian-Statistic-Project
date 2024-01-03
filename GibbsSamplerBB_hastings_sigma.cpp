@@ -52,7 +52,7 @@ Rcpp::List GibbsSampler_betabernoulli( double alpha, double theta, double sigma_
     for (Eigen::Index it=0;it<n_iter+initial_iters;++it){
 
 
-        /*
+        
         // Update sigma_x and sigma_a using Metropolis-Hastings steps
 
        //si potrebbe fare da quando it=1 aggiungendo un if
@@ -82,7 +82,7 @@ Rcpp::List GibbsSampler_betabernoulli( double alpha, double theta, double sigma_
             generator,  // Random number generator
             prior_variance_sigma_a  // Prior variance for sigma_a
         );
-        */
+        
 
         MatrixXd Znew;
 
