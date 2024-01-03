@@ -7,15 +7,9 @@ using namespace Rcpp;
 using namespace Eigen;
 
 //[[Rcpp::export]]
-Rcpp::List GibbsSampler_betabernoulli( double alpha, double theta, double sigma_x,double sigma_a,  int n_tilde,  int n,  SEXP A_, SEXP X_, unsigned n_iter, unsigned initial_iters){
-    /*
-    Aggiungo qui, come commento, una call in cui aggiungo 2 input prior_variance_sigma_x e prior_variance_sigma_a alla funzione 
-    GibbsSampler_betabernoulli, usati poi più in basso nelle funzioni per il metropolis-hastings per impostare una prior su sigma_x e sigma_a:
-    
     Rcpp::List GibbsSampler_betabernoulli( double alpha, double theta, double sigma_x,double sigma_a,double prior_variance_sigma_x, 
-    double prior_variance_sigma_a,  int n_tilde,  int n, SEXP A_, SEXP X_, unsigned n_iter, unsigned initial_iters)
-    
-    */
+    double prior_variance_sigma_a,  int n_tilde,  int n, SEXP A_, SEXP X_, unsigned n_iter, unsigned initial_iters){
+
     /*STRATEGY:
      * When generating a new matrix the null columns will be moved at the end instead of being removed.
      * * Anyway, in the vector of matrices  matrices Z with only non null columns will be inserted.
