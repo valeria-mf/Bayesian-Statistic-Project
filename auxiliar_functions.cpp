@@ -75,6 +75,19 @@ long double calculate_likelihood(const MatrixXd& Z, const MatrixXd& X, const Mat
   return prob_xz_1*exp(prob_xz_2);
 }
 
+long double calculate_log_likelihood(const MatrixXd& Z, const MatrixXd& X, 
+                                     const MatrixXd& M, double sigma_x, 
+                                     double sigma_a, int n_tilde, unsigned D, int n) {
+  // Compute determinant part
+  long double log_det_part = -0.5 * D * log((Z.transpose() * Z + sigma_x * sigma_x / sigma_a / sigma_a * Eigen::MatrixXd::Identity(n_tilde, n_tilde)).determinant());
+  
+  // Compute trace part
+  MatrixXd mat = X.transpose() * (Eigen::MatrixXd::Identity(n, n) - (Z * M * Z.transpose())) * X;
+  long double trace_part = -0.5 / (sigma_x * sigma_x) * mat.trace();
+  
+  return log_det_part + trace_part;
+}
+
 // Function to calculate the probability of k = certain value in binomial distribution
 double binomialProbability(unsigned n_res, double prob, unsigned k) {
     double binomial_coefficient = factorial(n_res) / (factorial(k) * factorial(n_res - k));
