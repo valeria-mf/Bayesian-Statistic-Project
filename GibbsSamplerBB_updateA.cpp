@@ -9,8 +9,7 @@ using namespace Eigen;
 //[[Rcpp::export]]
 Rcpp::List GibbsSampler_betabernoulli(double alpha, double theta, double sigma_x, double sigma_a,
                                       double prior_variance_sigma_x, double prior_variance_sigma_a,
-                                      int n_tilde, int n, const Eigen::Map<Eigen::MatrixXd>& A,
-                                      const Eigen::Map<Eigen::MatrixXd>& X, unsigned n_iter,
+                                      int n_tilde, int n, SEXP A_, SEXP X_, unsigned n_iter,
                                       unsigned initial_iters) {
       /*STRATEGY:
      * When generating a new matrix the null columns will be moved at the end instead of being removed.
