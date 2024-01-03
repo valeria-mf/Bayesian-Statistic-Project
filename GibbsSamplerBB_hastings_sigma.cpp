@@ -50,33 +50,7 @@ using namespace Eigen;
         // Update sigma_x and sigma_a using Metropolis-Hastings steps
 
        //si potrebbe fare da quando it=1 aggiungendo un if
-        double proposal_variance_factor_sigma_x = 0.1 * sigma_x; // e.g., 10% of current sigma_x
-        double proposal_variance_factor_sigma_a = 0.1 * sigma_a; // e.g., 10% of current sigma_a
-
-        // Update sigma_x using the metropolis_step_sigma_x function
-        sigma_x = metropolis_step_sigma_x(
-            sigma_x, // Current value of sigma_x
-            Z,       // Matrix Z
-            X,       // Matrix X
-            A,       // Matrix A
-            sigma_a, // Current value of sigma_a
-            proposal_variance_factor_sigma_x, // Proposal variance for sigma_x
-            generator,  // Random number generator
-            prior_variance_sigma_x  // Prior variance for sigma_x
-        );
-        
-        // Update sigma_a using the metropolis_step_sigma_a function
-        sigma_a = metropolis_step_sigma_a(
-            sigma_a, // Current value of sigma_a
-            Z,       // Matrix Z
-            X,       // Matrix X
-            A,       // Matrix A
-            sigma_x, // Current value of sigma_x
-            proposal_variance_factor_sigma_a, // Proposal variance for sigma_a
-            generator,  // Random number generator
-            prior_variance_sigma_a  // Prior variance for sigma_a
-        );
-        
+       
 
         MatrixXd Znew;
 
@@ -207,6 +181,33 @@ using namespace Eigen;
 
                 }
         }
+        double proposal_variance_factor_sigma_x = 0.1 * sigma_x; // e.g., 10% of current sigma_x
+        double proposal_variance_factor_sigma_a = 0.1 * sigma_a; // e.g., 10% of current sigma_a
+
+        // Update sigma_x using the metropolis_step_sigma_x function
+        sigma_x = metropolis_step_sigma_x(
+            sigma_x, // Current value of sigma_x
+            Z,       // Matrix Z
+            X,       // Matrix X
+            A,       // Matrix A
+            sigma_a, // Current value of sigma_a
+            proposal_variance_factor_sigma_x, // Proposal variance for sigma_x
+            generator,  // Random number generator
+            prior_variance_sigma_x  // Prior variance for sigma_x
+        );
+        
+        // Update sigma_a using the metropolis_step_sigma_a function
+        sigma_a = metropolis_step_sigma_a(
+            sigma_a, // Current value of sigma_a
+            Z,       // Matrix Z
+            X,       // Matrix X
+            A,       // Matrix A
+            sigma_x, // Current value of sigma_x
+            proposal_variance_factor_sigma_a, // Proposal variance for sigma_a
+            generator,  // Random number generator
+            prior_variance_sigma_a  // Prior variance for sigma_a
+        );
+        
 
             if(it>=initial_iters)
                 Ret.push_back(eliminate_null_columns(Z).first);
