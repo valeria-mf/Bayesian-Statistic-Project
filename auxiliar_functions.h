@@ -34,6 +34,12 @@ Eigen::MatrixXd update_M(const MatrixXd& M, const VectorXd& z_i);
 // Function to calculate the likelihood of the data X given the latent feature matrix Z
 long double calculate_likelihood(const MatrixXd& Z, const MatrixXd& X, const MatrixXd& M, double sigma_x,double sigma_a,int n_tilde,unsigned D,int n);
 
+// Function to calculate the log-likelihood of the data X given the latent feature matrix Z
+//we need it for numerical stability reasons
+long double calculate_log_likelihood(const MatrixXd& Z, const MatrixXd& X, 
+                                     const MatrixXd& M, double sigma_x, 
+                                     double sigma_a, int n_tilde, unsigned D, int n)
+
 // Function to calculate the probability of k = certain value in binomial distribution
 double binomialProbability(unsigned n_res, double prob, unsigned k);
 
