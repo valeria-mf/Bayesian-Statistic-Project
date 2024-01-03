@@ -189,8 +189,9 @@ Rcpp::List GibbsSampler_betabernoulli(double alpha, double theta, double sigma_x
                 }
         }
 
-    MatrixXd A_updated = sample_A(Z, X, sigma_x, sigma_a, generator)
-    
+    MatrixXd A_updated = sample_A(Z, X, sigma_x, sigma_a, generator);
+    //Invece di generare una nuova matrice, sovrascrivo sempre A:
+    //MatrixXd A = sample_A(Z, X, sigma_x, sigma_a, generator);
 
     if (it >= initial_iters) {
       Ret.push_back(eliminate_null_columns(Z).first);
