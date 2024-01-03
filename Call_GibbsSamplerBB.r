@@ -26,7 +26,7 @@ generateRandomMatrix <- function(K, D) {
   return(randomMatrix)
 }
 
-Z_true <- generateRandomMatrix(N, K)
+Z_true <- generateRandomMatrix(N, K)  # cambiamolo: generiamola Z(i,j)=1 with P=0.5
 A_ <- matrix(rnorm(K*D,mean_a,sigma_a), nrow = K, ncol = D)
 X_ <- matrix(0, nrow=N, ncol=D)
 for (i in 1:N){
