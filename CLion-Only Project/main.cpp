@@ -14,19 +14,38 @@ int main() {
 
     //parametrs in th finite case:
 
-    int n=15;
-    int D=30;
-    double alpha=-7, theta=13;
-    double sigma_x=2, sigma_a=5;
-    int n_tilde=20;
-    int n_iter = 60;
-    int initial_iters = 40;
-    MatrixXd A= Eigen::MatrixXd::Random(n_tilde,D);
-    MatrixXd X= Eigen::MatrixXd::Random(n,D);
+
+    int n=50;
+    double alpha=-4, theta=15;
+    double sigma_x=1.5, sigma_a=1.3;
+    int n_tilde=10, D=20;
+    std::default_random_engine generator;
+    MatrixXd Z = Eigen::MatrixXd::Zero(n, n_tilde);
+    MatrixXd A(n_tilde,D) , X(n,D);
+    std::bernoulli_distribution Z_initializer(0.5);
+    for(unsigned i=0; i<n;++i)
+        for(unsigned j=0;j<n_tilde;++j)
+            Z(i, j) = Z_initializer(generator) ? 1 : 0;
+    std::normal_distribution<double> A_initializer(0,sigma_a);
+    for(unsigned i=0; i<n_tilde;++i)
+        for(unsigned j=0;j<D;++j)
+            A(i, j) = A_initializer(generator);
+        for (unsigned i=0; i< n; ++i)
+        {
+            Eigen::RowVectorXd R=Z.row(i);
+            Eigen::RowVectorXd RR=R*A;
+            for(unsigned j=0; j<D;++j){
+                double param=RR(j);
+                std::normal_distribution<double> X_initializer(param,sigma_x);
+                X(i,j)=X_initializer(generator);
+
+        }}
+    std::cout<<"MATRIX Z DA RAGGIUNGERE:\n" << Z<<"\n"<<std::endl;
+    std::cout<<"QUANTI 1?:\n" << Z.sum()<<"\n"<<std::endl;
 
 
-    matrix_collection Z_gen= gibbsSamplerBetabernoulli(alpha, theta, sigma_x, sigma_a, n_tilde, n, A, X, n_iter, initial_iters);
 
+    matrix_collection Z_gen=GibbsSampler_betabernoulli(alpha,theta,sigma_x,sigma_a,n_tilde,n,A,X,5,500);
 
 /* // Per inizializzare meglio il BB (Ma c'è qualcosa che non va con le dimensioni delle matrici quando faccio matrix-mumltiplications, da ricontrollare)
 
