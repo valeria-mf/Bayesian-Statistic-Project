@@ -7,6 +7,7 @@
 #include "auxiliar_functions.h"
 
 #include <cmath>
+#include <random>
 #define pi 3.1415926535897932
 
 
@@ -29,23 +30,28 @@ Rcpp::List GibbsSampler_betabernoulli( double alpha, double theta, double sigma_
     // Initialization of Z and m:
     MatrixXd Z = Eigen::MatrixXd::Zero(n, n_tilde);
     VectorXd m(n_tilde);
+    
+    std::default_random_engine generator;
 
-     std::bernoulli_distribution Z_initializer(0.5);
+    std::bernoulli_distribution Z_initializer(0.5);
     for(unsigned i=0; i< n ; ++i)
         for(unsigned j=0; j<n_tilde;++j)
             Z(i, j) = Z_initializer(generator) ? 1 : 0;
-  //  std::cout<< Z << std::endl;
+  //  std::cout << Z << std::endl;
 
 
-    VectorXd m(n_tilde);
 
     // D:
     const unsigned D = A.cols();
 
     //create a set to put the generated Z matrices:
     matrix_collection Ret;
-
-
+    
+    //create a vector to put the K values
+    VectorXd K_vector(n_iter+initial_iters);
+    //create a vector to put the log[P(X|Z)]
+    VectorXd logPXZ_vector(n_iter+initial_iters);
+    
 
 
 
@@ -168,7 +174,8 @@ Rcpp::List GibbsSampler_betabernoulli( double alpha, double theta, double sigma_
                     }
 
                     // Sample the number of new features based on posterior probabilities
-                    std::discrete_distribution<int> distribution(prob_new.begin(), prob_new.end());
+                    //std::discrete_distribution<int> distribution(prob_new.begin(), prob_new.end());
+                    std::discrete_distribution<int> distribution(prob_new.data(), prob_new.data() + prob_new.size());
                     int new_feat = distribution(generator);
 
 
@@ -224,14 +231,17 @@ Rcpp::List GibbsSampler_betabernoulli( double alpha, double theta, double sigma_
         
         //----------------------------------------------------------------------
         //FINE calcolo log[P(X|Z)]
-
+        
+        logPXZ_vector(it)=pXZ_log;
+        //fill the K_vector
+        K_vector(it)=K;
 
 
 
 
         
-            if(it>=initial_iters)
-                Ret.push_back(eliminate_null_columns(Z).first);
+        if(it>=initial_iters)
+              Ret.push_back(eliminate_null_columns(Z).first);
         }
-    return Rcpp::List::create(Rcpp::Named("result") = Ret);
+    return Rcpp::List::create(Rcpp::Named("Z_list") = Ret, Rcpp::Named("K_vector")=K_vector, Rcpp::Named("logPXZ_vector")=logPXZ_vector);
 }

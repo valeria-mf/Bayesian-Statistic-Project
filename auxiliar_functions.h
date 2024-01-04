@@ -38,7 +38,7 @@ long double calculate_likelihood(const MatrixXd& Z, const MatrixXd& X, const Mat
 //we need it for numerical stability reasons
 long double calculate_log_likelihood(const MatrixXd& Z, const MatrixXd& X, 
                                      const MatrixXd& M, double sigma_x, 
-                                     double sigma_a, int n_tilde, unsigned D, int n)
+                                     double sigma_a, int n_tilde, unsigned D, int n);
 
 // Function to calculate the probability of k = certain value in binomial distribution
 double binomialProbability(unsigned n_res, double prob, unsigned k);

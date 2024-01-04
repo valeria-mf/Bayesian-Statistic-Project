@@ -107,9 +107,9 @@ double compute_cardinality(Eigen::MatrixXd Z) {
     Eigen::VectorXd histories = Eigen::VectorXd::Constant(Z.cols(), -1);
     Eigen::VectorXd occurrences = Eigen::VectorXd::Constant(Z.cols(), 0); // con una unordered map sarebbe molto meglio, ma ad Eigen non piacciono gli iteratori :(
    
-    for(size_t i=0;i<Z.cols();++i){
+    for(Eigen::Index i=0;i<Z.cols();++i){
         base_ten = 0;
-        for(size_t j=0; j<Z.rows();++j){
+        for(Eigen::Index j=0; j<Z.rows();++j){
             if(Z(j,i)==1){
                 base_ten+=pow(2,Z.rows()-j-1); // la colonne di Z vengono lette in binario dall'alto in basso e trasformata in base 10
                 // lo faccio per identificare univocamente e facilmente features con la stessa storia (colonne uguali => base_ten uguali)
@@ -129,7 +129,7 @@ double compute_cardinality(Eigen::MatrixXd Z) {
         }
 
         if(k == occurrences.size()){               // alternativamente, avremo trovato una nuova history...
-            size_t w = 0;
+            Eigen::Index w = 0;
             while(occurrences(w) != 0 && w < occurrences.size()){
                 w=w+1;
             }
