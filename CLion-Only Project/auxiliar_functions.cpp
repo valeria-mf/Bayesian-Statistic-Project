@@ -436,8 +436,11 @@ matrix_collection gibbsSamplerBetabernoulli( double alpha, double theta, double 
         //std::cout << "pXZ_log = eq_12_log + eq_21_log = " <<  eq_12_log << " + " << eq_21_log << " = " << pXZ_log << std::endl;
         std::cout << "pXZ_log = " << pXZ_log << std::endl;
 
+        Eigen::MatrixXd Expected_A_given_XZ = (Z.transpose()*Z+pow(sigma_x/sigma_a,2)*Eigen::MatrixXd::Identity(Z.cols(), Z.cols())).inverse()*Z.transpose()*X;
+        //std::cout << Expected_A_given_XZ << std::endl;
+      
         //----------------------------------------------------------------------
-        //FINE calcolo log[P(X|Z)]
+        //FINE calcolo log[P(X|Z)] e E[A|X,Z]
 
 
 
