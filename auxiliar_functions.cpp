@@ -69,10 +69,16 @@ Eigen::MatrixXd update_M(const MatrixXd& M, const VectorXd& z_i) {
 
 long double calculate_likelihood(const MatrixXd& Z, const MatrixXd& X, const MatrixXd& M, double sigma_x,double sigma_a,int n_tilde,unsigned D,int n) {
   // Assuming a diagonal covariance matrix sigma_X^2 * I for the Gaussian likelihood
-  long double prob_xz_1=1/(pow((Z.transpose()*Z + sigma_x*sigma_x/sigma_a/sigma_a*Eigen::MatrixXd::Identity(n_tilde,n_tilde)).determinant(),D*0.5) );
-  MatrixXd mat=X.transpose() * (Eigen::MatrixXd::Identity(n,n) - (Z * M * Z.transpose())) * X;
-  long double prob_xz_2=mat.trace()*(-1/(2*sigma_x*sigma_x));
-  return prob_xz_1*exp(prob_xz_2);
+  Eigen::MatrixXd Zt=Z.transpose();
+    Eigen::MatrixXd Xt=X.transpose();
+    Eigen::MatrixXd I_ntilde=Eigen::MatrixXd::Identity(n_tilde,n_tilde);
+    Eigen::MatrixXd I_n=Eigen::MatrixXd::Identity(n,n);
+    long double trace=(Xt *(I_n-(Z * M * Zt ))*X).trace();
+    long double det=(M*sigma_x*sigma_x).determinant();
+    long double den = pow(2*M_PI,n*D/2)*pow(sigma_x,n*D)*pow(sigma_a,n_tilde*D);
+    return pow(det,D/2)/den*exp(trace*(-1 / (2 * sigma_x * sigma_x)));
+
+
 }
 
 long double calculate_log_likelihood(const MatrixXd& Z, const MatrixXd& X, 
