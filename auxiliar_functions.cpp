@@ -249,7 +249,7 @@ MatrixXd sample_A(const MatrixXd& Z, const MatrixXd& X, double sigma_x, double s
   
   return new_A;
 }
-
+*/
 
 
 
@@ -259,14 +259,14 @@ MatrixXd sample2_A(const MatrixXd& Z, const MatrixXd& X, double sigma_x, double 
   unsigned D = X.cols(); // Dimension of data
   
   // Posterior precision and covariance
-  a = 1; // per ora è un numero a caso
-  b = 1; // idem
+  double a = 1; // per ora è un numero a caso
+  double b = 1; // idem
   std::gamma_distribution<double> distr(a, b) // bisogna capire cosa mettere come a e b
   double Sigma_posterior = pow(distr(generator),-1) // sto facendo sampling da una gamma
   
   
   // Posterior mean
-  c = 1 // per ora è un numero a caso
+  double c = 1 // per ora è un numero a caso
   Eigen::VectorXd mu_posterior(D);
   for(unsigned d=0; d<D; ++d) {
     std::normal_distribution<double> distr(0, c*Sigma_posterior); // sampling dei valori della media elemento per elemento
@@ -285,4 +285,3 @@ MatrixXd sample2_A(const MatrixXd& Z, const MatrixXd& X, double sigma_x, double 
   return new_A;
   }
   // Fine 4.2
-*/
