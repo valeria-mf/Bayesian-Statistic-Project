@@ -94,29 +94,16 @@ Rcpp::List GibbsSampler_betabernoulli( double alpha, double theta, double sigma_
                 Z(i, count) = 1;
                 M = update_M(M, Z.row(i));
 
-                long double prob_xz_1 = 1 / (pow((Z.transpose() * Z + sigma_x * sigma_x / sigma_a / sigma_a *
-                                                                      Eigen::MatrixXd::Identity(n_tilde,
-                                                                                                n_tilde)).determinant(),
-                                                 D * 0.5));
-                MatrixXd mat = X.transpose() * (Eigen::MatrixXd::Identity(n, n) - (Z * M * Z.transpose())) * X;
-                long double prob_xz_2 = mat.trace() * (-1 / (2 * sigma_x * sigma_x));
+                long double prob_xz= calculate_likelihood(Z,X,M,sigma_x,sigma_a,n_tilde,D,n);
 
-
-                long double prob_xz = prob_xz_1 * exp(prob_xz_2);
 
 
                 //P(X|Z) when z_ij=1:
                 Z(i, count) = 0;
                 M = update_M(M, Z.row(i));
-                long double prob_xz_10 = 1 / pow((Z.transpose() * Z + sigma_x * sigma_x / sigma_a / sigma_a *
-                                                                      Eigen::MatrixXd::Identity(Z.cols(),
-                                                                                                Z.cols())).determinant(),
-                                                 D * 0.5);
+                
+                long double prob_xz0 = calculate_likelihood(Z,X,M,sigma_x,sigma_a,n_tilde,D,n);
 
-                MatrixXd mat0 = X.transpose() * (Eigen::MatrixXd::Identity(n, n) - (Z * M * Z.transpose())) * X;
-                long double prob_xz_20 = mat.trace() * (-1 / (2 * sigma_x * sigma_x));
-
-                long double prob_xz0 = prob_xz_10 * exp(prob_xz_20);
 
                 //Bernoulli parameter:
 
@@ -157,14 +144,8 @@ Rcpp::List GibbsSampler_betabernoulli( double alpha, double theta, double sigma_
                         double bin_prob = binomialProbability(n_res, prob, itt);
                         Z(i, j + itt) = 1;
                         M = update_M(M, Z.row(i));
-                        long double p_xz_1 = 1 / (pow((Z.transpose() * Z + sigma_x * sigma_x / sigma_a / sigma_a *
-                                                                           Eigen::MatrixXd::Identity(n_tilde,
-                                                                                                     n_tilde)).determinant(),
-                                                      D * 0.5));
-                        MatrixXd mat = X.transpose() * (Eigen::MatrixXd::Identity(n, n) - (Z * M * Z.transpose())) * X;
-                        long double p_xz_2 = mat.trace() * (-1 / (2 * sigma_x * sigma_x));
-
-                        double p_xz = p_xz_1 * exp(p_xz_2);
+                        
+                        p_xz = calculate_likelihood(Z,X,M,sigma_x,sigma_a,n_tilde,D,n);
                         prob_new(itt) = bin_prob * p_xz;
                     }
                     // Normalize posterior probabilities
