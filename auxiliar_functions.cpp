@@ -245,7 +245,6 @@ MatrixXd sample_A(const MatrixXd& Z, const MatrixXd& X, double sigma_x, double s
       new_A(k, d) = dist(generator);
     }
   }
-  
   return new_A;
 }
 
@@ -271,10 +270,10 @@ MatrixXd sample2_A(const MatrixXd& Z, const MatrixXd& X, double sigma_x, double 
   // Sample from the posterior distribution for A
   MatrixXd new_A(K, D);  
   for(unsigned k=0; k<K; ++k) {
-    for(unsigned d=0; d<D; ++d) {      std::normal_distribution<double> distr(mu_posterior(d), Sigma_posterior);
+    for(unsigned d=0; d<D; ++d) {
+      std::normal_distribution<double> distr(mu_posterior(d), Sigma_posterior);
       new_A(k,d) = distr(generator); // sampling dei valori di A elemento per elemento    
     }
   }  
   return new_A;
-
-}  // Fine 4.2
+}
