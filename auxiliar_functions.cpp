@@ -223,7 +223,7 @@ double metropolis_step_sigma_a(double current_sigma_a, const MatrixXd& Z, const 
   return log(uniform(generator)) < log_acceptance_ratio ? new_sigma_a : current_sigma_a;
 }
 
-/*
+
 // Function to sample A gaussian matrix (4.1)
 MatrixXd sample_A(const MatrixXd& Z, const MatrixXd& X, double sigma_x, double sigma_a, std::default_random_engine& generator) {
   unsigned K = Z.cols(); // Number of features
@@ -248,7 +248,7 @@ MatrixXd sample_A(const MatrixXd& Z, const MatrixXd& X, double sigma_x, double s
   
   return new_A;
 }
-*/
+
 
 
 // Function to sample A matrix with new prior (4.2)
