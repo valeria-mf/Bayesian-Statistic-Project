@@ -235,8 +235,7 @@ MatrixXd sample_A(const MatrixXd& Z, const MatrixXd& X, double sigma_x, double s
   MatrixXd Sigma_posterior = llt.solve(MatrixXd::Identity(K, K)); // Invert the precision matrix
   
   // Posterior mean
-  //MatrixXd mu_posterior = Sigma_posterior * (Z.transpose() * X) / (sigma_x * sigma_x); // formula usata da antonio
-  MatrixXd mu_posterior = (Z.transpose() * Z + sigma_x^2 * MatrixXd::Identity(Z.cols(),Z.cols()) / sigma_a^2).inv() * Z.transpose() * X; // formula secondo me (giuseppe)
+  //MatrixXd mu_posterior = Sigma_posterior * (Z.transpose() * X) / (sigma_x * sigma_x);
   
   // Sample from the posterior distribution for A
   MatrixXd new_A(K, D);
