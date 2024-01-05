@@ -51,6 +51,7 @@ Rcpp::List GibbsSampler_betabernoulli( double alpha, double theta, double sigma_
     VectorXd K_vector(n_iter+initial_iters);
     //create a vector to put the log[P(X|Z)]
     VectorXd logPXZ_vector(n_iter+initial_iters);
+    Eigen::MatrixXd Expected_A_given_XZ;
     
 
 
@@ -145,7 +146,7 @@ Rcpp::List GibbsSampler_betabernoulli( double alpha, double theta, double sigma_
                         Z(i, j + itt) = 1;
                         M = update_M(M, Z.row(i));
                         
-                        p_xz = calculate_likelihood(Z,X,M,sigma_x,sigma_a,n_tilde,D,n);
+                        long double p_xz = calculate_likelihood(Z,X,M,sigma_x,sigma_a,n_tilde,D,n);
                         prob_new(itt) = bin_prob * p_xz;
                     }
                     // Normalize posterior probabilities
@@ -210,6 +211,8 @@ Rcpp::List GibbsSampler_betabernoulli( double alpha, double theta, double sigma_
         long double pXZ_log = eq_12_log + eq_21_log;
         // Rcpp::Rcout << "pXZ_log = eq_12_log + eq_21_log = " <<  eq_12_log << " + " << eq_21_log << " = " << pXZ_log << std::endl;
         
+        Expected_A_given_XZ = (Z.transpose()*Z+pow(sigma_x/sigma_a,2)*Eigen::MatrixXd::Identity(Z.cols(), Z.cols())).inverse()*Z.transpose()*X;
+        
         //----------------------------------------------------------------------
         //FINE calcolo log[P(X|Z)]
         
@@ -224,5 +227,5 @@ Rcpp::List GibbsSampler_betabernoulli( double alpha, double theta, double sigma_
         if(it>=initial_iters)
               Ret.push_back(eliminate_null_columns(Z).first);
         }
-    return Rcpp::List::create(Rcpp::Named("Z_list") = Ret, Rcpp::Named("K_vector")=K_vector, Rcpp::Named("logPXZ_vector")=logPXZ_vector);
+    return Rcpp::List::create(Rcpp::Named("Z_list") = Ret, Rcpp::Named("K_vector")=K_vector, Rcpp::Named("logPXZ_vector")=logPXZ_vector, Rcpp::Named("Expected_A") = Expected_A_given_XZ);
 }

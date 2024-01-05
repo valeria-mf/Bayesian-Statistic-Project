@@ -231,11 +231,11 @@ MatrixXd sample_A(const MatrixXd& Z, const MatrixXd& X, double sigma_x, double s
   
   // Posterior precision and covariance
   MatrixXd Sigma_posterior_inv = (1 / (sigma_x * sigma_x)) * Z.transpose() * Z + (1 / (sigma_a * sigma_a)) * MatrixXd::Identity(K, K);
-  LLT<MatrixXd> llt(Sigma_posterior_inv); // Cholesky decomposition for numerical stability
+  Eigen::LLT<MatrixXd> llt(Sigma_posterior_inv); // Cholesky decomposition for numerical stability
   MatrixXd Sigma_posterior = llt.solve(MatrixXd::Identity(K, K)); // Invert the precision matrix
   
   // Posterior mean
-  MatrixXd mu_posterior = Sigma_posterior * (Z.transpose() * X) / (sigma_x * sigma_x); // formula usata da antonio
+  //MatrixXd mu_posterior = Sigma_posterior * (Z.transpose() * X) / (sigma_x * sigma_x); // formula usata da antonio
   MatrixXd mu_posterior = (Z.transpose() * Z + sigma_x^2 * MatrixXd::Identity(Z.cols(),Z.cols()) / sigma_a^2).inv() * Z.transpose() * X; // formula secondo me (giuseppe)
   
   // Sample from the posterior distribution for A
@@ -252,36 +252,30 @@ MatrixXd sample_A(const MatrixXd& Z, const MatrixXd& X, double sigma_x, double s
 */
 
 
-
 // Function to sample A matrix with new prior (4.2)
 MatrixXd sample2_A(const MatrixXd& Z, const MatrixXd& X, double sigma_x, double sigma_a, std::default_random_engine& generator) {
-  unsigned K = Z.cols(); // Number of features
+  unsigned K = Z.cols(); // Number of features  
   unsigned D = X.cols(); // Dimension of data
-  
   // Posterior precision and covariance
-  double a = 1; // per ora è un numero a caso
+  double a = 1; // per ora è un numero a caso  
   double b = 1; // idem
-  std::gamma_distribution<double> distr(a, b) // bisogna capire cosa mettere come a e b
-  double Sigma_posterior = pow(distr(generator),-1) // sto facendo sampling da una gamma
+  std::gamma_distribution<double> distr(a, b); // bisogna capire cosa mettere come a e b  
+  double Sigma_posterior = pow(distr(generator),-1); // sto facendo sampling da una gamma
   
-  
-  // Posterior mean
-  double c = 1 // per ora è un numero a caso
-  Eigen::VectorXd mu_posterior(D);
+  // Posterior mean  
+  double c = 1; // per ora è un numero a caso
+  Eigen::VectorXd mu_posterior(D);  
   for(unsigned d=0; d<D; ++d) {
-    std::normal_distribution<double> distr(0, c*Sigma_posterior); // sampling dei valori della media elemento per elemento
+    std::normal_distribution<double> distr(0, c*Sigma_posterior); // sampling dei valori della media elemento per elemento    
     mu_posterior(d) = distr(generator);
   }
-
-  
   // Sample from the posterior distribution for A
-  MatrixXd new_A(K, D);
+  MatrixXd new_A(K, D);  
   for(unsigned k=0; k<K; ++k) {
-    for(unsigned d=0; d<D; ++d) {
-      std::normal_distribution<double> distr(mu_posterior(d), Sigma_posterior);
-      new_A(k,d) = distr(generator); // sampling dei valori di A elemento per elemento
+    for(unsigned d=0; d<D; ++d) {      std::normal_distribution<double> distr(mu_posterior(d), Sigma_posterior);
+      new_A(k,d) = distr(generator); // sampling dei valori di A elemento per elemento    
     }
-  }
+  }  
   return new_A;
-  }
-  // Fine 4.2
+
+}  // Fine 4.2

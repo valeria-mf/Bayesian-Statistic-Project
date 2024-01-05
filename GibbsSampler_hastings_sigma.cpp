@@ -14,7 +14,7 @@
 
 //[[Rcpp::export]]
 Rcpp::List GibbsSampler_betabernoulli( double alpha, double theta, double sigma_x,double sigma_a, double prior_variance_sigma_x, 
-                                       double prior_variance_sigma_a, int n_tilde,  int n,  SEXP A_, SEXP X_, unsigned n_iter, unsigned initial_iters){
+                                       double prior_variance_sigma_a,int n_tilde,  int n,  SEXP A_, SEXP X_, unsigned n_iter, unsigned initial_iters){
 
     /*STRATEGY:
      * When generating a new matrix the null columns will be moved at the end instead of being removed.
@@ -179,7 +179,6 @@ Rcpp::List GibbsSampler_betabernoulli( double alpha, double theta, double sigma_
         sigma_a = metropolis_step_sigma_a(sigma_a,Z,X,A,sigma_x,proposal_variance_factor_sigma_a,generator,prior_variance_sigma_a);
         
         
-        A= sample2_A(Z, X, sigma_x, sigma_a, generator);
 
 
 
