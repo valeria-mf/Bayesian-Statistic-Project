@@ -1,0 +1,269 @@
+\documentclass{beamer}
+\usepackage[utf8]{inputenc}
+
+\usetheme{Madrid}
+\usecolortheme{default}
+\useinnertheme{circles}
+
+\definecolor{Logo1}{rgb}{0.208, 0.2865, 0.373}
+\definecolor{Logo2}{rgb}{0.000, 0.674, 0.863}
+
+\setbeamercolor*{palette primary}{bg=Logo1, fg=white}
+\setbeamercolor*{palette secondary}{bg=Logo2, fg=white}
+\setbeamercolor*{palette tertiary}{bg=white, fg=Logo1}
+\setbeamercolor*{palette quaternary}{bg=Logo1,fg=white}
+\setbeamercolor{structure}{fg=Logo1} % itemize, enumerate, etc
+\setbeamercolor{section in toc}{fg=Logo1} % TOC sections
+\usepackage[ruled,vlined]{algorithm2e}
+
+
+
+%------------------------------------------------------------
+%This block of code defines the information to appear in the
+%Title page
+\title[Priors over binary matrices] %optional
+{Comparing priors over binary matrices within latent feature models framework}
+
+\subtitle{Supervisor: Lorenzo Ghilotti}
+
+\author[Bayesian Statistics] % (optional)
+{V. Iapaolo, L. Maci, Z. Mehboob, V. Montefusco, \\ G.T. Morra, A. Napolitano}
+
+\institute[] % (optional)
+{
+  Department of Mathematical Engineering\\
+  Politecnico di Milano
+}
+
+\date[9 January 2024] % (optional)
+{Group project, 9 January 2024}
+
+
+%\logo{\includegraphics[height=.5cm]{}}
+
+%End of title page configuration block
+%------------------------------------------------------------
+
+
+
+%------------------------------------------------------------
+%The next block of commands puts the table of contents at the 
+%beginning of each section and highlights the current section:
+
+\AtBeginSection[]
+{
+  \begin{frame}
+    \frametitle{Table of Contents}
+    \tableofcontents[currentsection]
+  \end{frame}
+}
+%------------------------------------------------------------
+
+\begin{document}
+
+\begin{frame}
+  \titlepage
+\end{frame}
+
+
+%The next statement creates the title page.
+
+
+\begin{frame}
+\frametitle{The Beta-Bernoulli model: Gibbs Sampler}
+{\small The aim is to sample binary matrices $Z$ according to the Beta-Bernoulli Model.
+\\
+Let $A \in \mathbb{R}^{\widetilde{N} x D}$,$X \in \mathbb{R}^{N x D}$,$\alpha <0$,$\theta > -\alpha$ :}
+\\[2mm]
+
+
+\begin{figure}[p]
+    \centering
+    \scalebox{0.85}{ % Scale down the algorithm
+        \begin{minipage}{\linewidth}
+            \begin{algorithm}[H]
+                \SetAlgoLined
+                \KwData{$X,A,\sigma_x,\sigma_A,BurnInIterations, Iterations$}
+                \KwResult{collection of Z matrices}
+                
+                \For{$iter \gets 1$ \KwTo $BurnInIterations+Iterations$}{
+                    \For{$i \gets 1$ \KwTo $N$}{
+                        $K \gets$ number of non-empty columns of $Z_{-i}$\;
+                        \For{$j \gets 1$ \KwTo $K$}{
+                            Sample already observed features\;
+                        }\\[2mm]
+                        
+                            Sample new features\;
+                        
+                    }
+                    \If{$iter > BurnInIterations$}{
+                        Add Z to the collection\;
+                    }
+                }
+                \caption{GibbsSamplerbetabernoulli}
+            \end{algorithm}
+        \end{minipage}
+    }
+\end{figure}
+
+
+\end{frame}
+
+\begin{frame}
+\frametitle{Sampling observed features:update $z_{i,j}$}
+{\small Let $K$ be the number of non-null columns of $Z_{-i}$. Let $m \in \mathbb{R}^{K}$ be the vector that tells us how many subjects (except $i$) have feature $j$, $j \leq K$ }
+\\[2mm]
+\begin{figure}[p]
+    \centering
+    \scalebox{0.85}{ % Scale down the algorithm
+        \begin{minipage}{\linewidth}
+            \begin{algorithm}[H]
+                \SetAlgoLined
+                    \KwData{$X,A,Z,\sigma_x,\sigma_A,i,j,m_j$}
+                    \KwResult{ Z }
+                    \\[1mm]
+                  
+                     $z_{i,j}  \gets 1$;\\
+                     $P(X | Z) \gets \text{see eq. (21)} $;\\
+                     $P(z_{ij} = 1 \,|\, z_{-i}) \gets \frac{m_j - \alpha}{\theta + (n - 1)}$; \\[2mm]
+                
+                     $z_{i,j}  \gets 0$;\\
+                     $ P(X | Z)  \gets   \text{see eq. (21)} $;\\
+                     $P(z_{ij} = 0 \,|\, z_{-i}) \gets 1- P(z_{ij} = 1 \,|\, z_{-i})$;\\[2mm]
+                
+                    $P(z_{il} = 1 \,|\, X, Z_{-i,j}) \propto P(X | Z) \cdot P(z_{ij} = 1 \,|\, z_{-i})$\;
+                     
+                    $P(z_{il} = 0 \,|\, X, Z_{-i,j}) \propto P(X | Z) \cdot P(z_{ij} = 0 \,|\, z_{-i})$\;
+                    Normalize the probabilites; \\[2mm]
+                
+                    $ prob\_param \gets P(z_{il} = 1 \,|\, X, Z_{-i,j})$;\\
+                    
+                     $z_{ij} \sim \text{Bernoulli}(prob\_param)$
+                
+                        
+  
+    \caption{Sample observed features}
+            \end{algorithm}
+        \end{minipage}
+    }
+\end{figure}
+\end{frame}
+
+
+
+\begin{frame}
+\frametitle{Sampling of new features}
+{\small 
+Let $w$ be the number of new features observed by subject $i$. In this step we sample $w$:}
+\\[2mm]
+\begin{figure}[p]
+    \centering
+    \scalebox{0.85}{ % Scale down the algorithm
+         \begin{minipage}{\linewidth}
+            \begin{algorithm}[H]
+    \SetAlgoLined
+    \KwData{$X,A,Z,\sigma_x,\sigma_A,i$}
+    \KwResult{Z}
+    \\[1mm]
+  
+     $W \gets \widetilde{N} - K $\;\\
+     $ prob\_param = 1 - \frac{\theta + \alpha + n - 1}{\theta + n - 1} $ \;\\
+     Initialize \textbf{prob\_vector} of dimension p to 0\; \\
+     \For{$w \gets {0,1,\dots,W}$}{
+        $prob\_vector_w \gets BinomialProbability(p,prob\_param,K= w)$\;\\
+        update Z\;\\
+        Calculate $P(X|Z)$\;\\
+        $P(w = k \,|\, X, Z) \propto P(X | Z) \cdot prob\_vector_w$\;
+     }
+     Normalize  \textbf{prob\_vector}\;\\
+     Sample $w \sim \text{Discrete}(\textbf{prob\_vector})$\;\\
+     Update $Z$;\\
+    
+    \caption{Sample new features}
+\end{algorithm}
+ \end{minipage}
+}
+\end{figure}
+\end{frame}
+\begin{frame}
+
+\frametitle{The Indian Buffet Process: Gibbs Sampler}
+{\small  The aim is to sample binary matrices $Z$ according to the IBP.
+\\
+Let $A \in \mathbb{R}^{K x D}$,$X \in \mathbb{R}^{N x D}$ ($K$ unbounded)$,
+0\leq \alpha \leq 1$,$\theta \geq \alpha$,$\gamma \geq 0 $:}
+\\[2mm]
+
+
+\begin{figure}[p]
+    \centering
+    \scalebox{0.85}{ % Scale down the algorithm
+        \begin{minipage}{\linewidth}
+            \begin{algorithm}[H]
+                \SetAlgoLined
+                \KwData{$X,A,\sigma_x,\sigma_A,BurnInIterations, Iterations$}
+                \KwResult{collection of Z matrices}
+                
+                \For{$iter \gets 1$ \KwTo $BurnInIterations+Iterations$}{
+                    \For{$i \gets 1$ \KwTo $N$}{
+                        $K \gets$ number of non-empty columns of $Z_{-i}$\;
+                        \For{$j \gets 1$ \KwTo $K$}{
+                            Sample already observed features\;
+                        }
+                        
+                            Sample new features, IBP\;
+                    
+                    }
+                    \If{$iter > BurnInIterations$}{
+                        Add Z to the collection\;
+                    }
+                }
+                \caption{GibbsSamplerIBP}
+            \end{algorithm}
+        \end{minipage}
+    }
+\end{figure}
+
+\end{frame}
+
+\begin{frame}
+
+\frametitle{IBP:Sampling new features}
+
+
+{\small Let $w$ be the number of new features observed by subject $i$. In this step we sample $w$:}
+\\ 
+\begin{figure}[p]
+    \centering
+    \scalebox{0.85}{ % Scale down the algorithm
+         \begin{minipage}{\linewidth}
+            \begin{algorithm}[H]
+    \SetAlgoLined
+    \KwData{$X,A,Z,\sigma_x,\sigma_A,\alpha,\theta,\gamma$}
+    \KwResult{ Z }
+    \\[1mm]
+
+     $W \gets \text{UB} - K $;  \textcolor{gray}{\small // $UB=10$ if $K>20$;$5$ otherwise}\\
+     $ prob\_param = \gamma \cdot \frac{(\theta + \alpha)_n}{(\theta + 1 )_n}$\;
+     Initialize \textbf{prob\_vector} of dimension W to all 0\; 
+     \For{$w \gets {0,1,\dots,W}$}{
+     
+        $prob\_vector_w \gets $ \textcolor{blue}{PoissonProbability( $prob\_param,K= w)$}\;
+        Update Z\;
+        Calculate $P(X|Z)$\;
+        $P(w = k \,|\, X, Z) \propto P(X | Z) \cdot prob\_vector_w$\;
+     }
+     Normalize  \textbf{prob\_vector}\;
+     Sample $w \sim \text{Discrete}(\textbf{prob\_vector})$\;
+     Update $Z$;\\
+    
+    \caption{Sample new features,IBP}
+\end{algorithm}
+ \end{minipage}
+}
+\end{figure}
+\end{frame}
+
+\end{document}
+
+
