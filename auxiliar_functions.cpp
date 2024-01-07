@@ -258,8 +258,11 @@ MatrixXd sample2_A(const MatrixXd& Z, const MatrixXd& X, double a, double b, dou
   // Posterior precision and covariance
   double an; // updated a
   double bn; // updated b
+  an = a + 0.5;
+  //bn = b + 0.5*()
   std::gamma_distribution<double> distr(an, bn);  
-  double Sigma_posterior = pow(distr(generator),-1); // sto facendo sampling da una gamma
+  double precision = pow(distr(generator),-1); // sto facendo sampling da una gamma
+  double Sigma_posterior = 1/precision; // this is sigma^2, the variance, not the standard deviation
   
   // Posterior mean 
   Eigen::VectorXd mu_posterior(D);  
