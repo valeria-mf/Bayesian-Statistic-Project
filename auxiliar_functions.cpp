@@ -255,6 +255,7 @@ MatrixXd sample_A(const MatrixXd& Z, const MatrixXd& X, double sigma_x, double s
 MatrixXd sample2_A(const MatrixXd& Z, const MatrixXd& X, double &a, double &b, double c, std::default_random_engine& generator) {
   unsigned K = Z.cols(); // Number of features  
   unsigned D = X.cols(); // Dimension of data
+    
   // Posterior precision and variance
   a = a + 0.5; // update a
   //b = b + 0.5*(values - mean)^2; // update b
@@ -268,6 +269,7 @@ MatrixXd sample2_A(const MatrixXd& Z, const MatrixXd& X, double &a, double &b, d
     std::normal_distribution<double> distr(0, c*Sigma_posterior); // sampling dei valori della media elemento per elemento    
     mu_posterior(d) = distr(generator);
   }
+    
   // Sample from the posterior distribution for A
   MatrixXd new_A(K, D);  
   for(unsigned k=0; k<K; ++k) {
