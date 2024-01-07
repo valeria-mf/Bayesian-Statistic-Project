@@ -251,13 +251,13 @@ MatrixXd sample_A(const MatrixXd& Z, const MatrixXd& X, double sigma_x, double s
 
 
 // Function to sample A matrix with new prior (4.2)
-MatrixXd sample2_A(const MatrixXd& Z, const MatrixXd& X, double sigma_x, double sigma_a, std::default_random_engine& generator) {
+MatrixXd sample2_A(const MatrixXd& Z, const MatrixXd& X, double a, double b, std::default_random_engine& generator) {
   unsigned K = Z.cols(); // Number of features  
   unsigned D = X.cols(); // Dimension of data
   // Posterior precision and covariance
-  double a = 1; // per ora è un numero a caso  
-  double b = 1; // idem
-  std::gamma_distribution<double> distr(a, b); // bisogna capire cosa mettere come a e b  
+  double an; // updated a
+  double bn; // updated b
+  std::gamma_distribution<double> distr(an, bn);  
   double Sigma_posterior = pow(distr(generator),-1); // sto facendo sampling da una gamma
   
   // Posterior mean  
