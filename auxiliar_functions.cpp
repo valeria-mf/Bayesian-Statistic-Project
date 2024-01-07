@@ -255,11 +255,11 @@ MatrixXd sample_A(const MatrixXd& Z, const MatrixXd& X, double sigma_x, double s
 MatrixXd sample2_A(const MatrixXd& Z, const MatrixXd& X, double a, double b, double c, std::default_random_engine& generator) {
   unsigned K = Z.cols(); // Number of features  
   unsigned D = X.cols(); // Dimension of data
-  // Posterior precision and covariance
+  // Posterior precision and variance
   double an; // updated a
   double bn; // updated b
   an = a + 0.5;
-  //bn = b + 0.5*()
+  //bn = b + 0.5*(values - mean)^2
   std::gamma_distribution<double> distr(an, bn);  
   double precision = pow(distr(generator),-1); // sto facendo sampling da una gamma
   double Sigma_posterior = 1/precision; // this is sigma^2, the variance, not the standard deviation
