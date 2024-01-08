@@ -179,7 +179,7 @@ Rcpp::List GibbsSampler_betabernoulli( double alpha, double theta, double sigma_
         sigma_a = metropolis_step_sigma_a(sigma_a,Z,X,A,sigma_x,proposal_variance_factor_sigma_a,generator,prior_variance_sigma_a);
         
         
-        A= sample2_A(Z, X, sigma_x, sigma_a, generator);
+        A= sample_A(Z, X, sigma_x, sigma_a, generator);
 
 
 

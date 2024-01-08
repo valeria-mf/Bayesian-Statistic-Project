@@ -1,5 +1,5 @@
 ---
-title: "Call_GibbsSamplerBB"
+title: "Call_GibbsSamplerBB_hastings_sigma"
 author: "Valeria Iapaolo"
 date: "2024-01-05"
 output: html_document
@@ -10,8 +10,8 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ```{r}
-install.packages("Rcpp")
-install.packages("RcppEigen")
+#install.packages("Rcpp")
+#install.packages("RcppEigen")
 
 ```
 

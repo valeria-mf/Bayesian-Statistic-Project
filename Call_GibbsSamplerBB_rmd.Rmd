@@ -10,8 +10,8 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ```{r}
-install.packages("Rcpp")
-install.packages("RcppEigen")
+#install.packages("Rcpp")
+#install.packages("RcppEigen")
 
 ```
 

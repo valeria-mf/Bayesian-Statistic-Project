@@ -152,7 +152,7 @@ Rcpp::List GibbsSampler_IBP(const double alpha,const double gamma,const double s
             }
 
             // Sample the number of new features based on posterior probabilities
-            std::discrete_distribution<int> distribution(prob_new.begin(), prob_new.end());
+            std::discrete_distribution<int> distribution(prob_new.data(), prob_new.data() + prob_new.size());
             int new_feat = distribution(generator);
 
 

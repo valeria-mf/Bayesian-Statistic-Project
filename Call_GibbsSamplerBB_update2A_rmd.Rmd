@@ -1,5 +1,5 @@
 ---
-title: "Call_GibbsSamplerBB_updateA"
+title: "Call_GibbsSamplerBB_update2A"
 author: "Valeria Iapaolo"
 date: "2024-01-05"
 output: html_document
@@ -33,7 +33,7 @@ Sys.setenv("PKG_CXXFLAGS"="-I\"C:\\Users\\ipval\\Desktop\\Progetto Bayesiana\\ei
 #Questo è il path del file creato con il comando install.packages("RcppEigen")
 Sys.setenv(PKG_CXXFLAGS=paste0("-I", shQuote("C:/Users/ipval/AppData/Local/R/win-library/4.2/RcppEigen/include")))
 
-Rcpp::sourceCpp("C:/Users/ipval/Desktop/ProgettoBayesiana/GibbsSamplerBB_updateA.cpp")
+Rcpp::sourceCpp("C:/Users/ipval/Desktop/ProgettoBayesiana/new_GS_BB_updateA.cpp")
 
 ```
 
@@ -148,7 +148,9 @@ mean_a=1
 n_iter=1000
 initial_iters=100
 prior_variance_sigma_x=1
-prior_variance_sigma_a=1
+a=1
+b=1
+c=1
 
 
 Z_true <- generateRandomMatrix(N, K)  
@@ -163,7 +165,7 @@ numero_colonne_diverse_da_zero_di_Z <- sum(colSums(Z_true != 0) > 0)
 numero_colonne_diverse_da_zero_di_Z
 
 result <- GibbsSampler_betabernoulli(alpha=-7, theta=13, sigma_x=sigma_x, sigma_a=sigma_a,  prior_variance_sigma_x, 
-                                        prior_variance_sigma_a,
+                                        a,b,c,
                                      n_tilde=30, n=N, A_=A_, X_=X_, n_iter=n_iter, initial_iters=initial_iters)
 result$K_vector
 
@@ -185,7 +187,9 @@ mean_a=1
 n_iter=1000
 initial_iters=100
 prior_variance_sigma_x=1
-prior_variance_sigma_a=1
+a=1
+b=1
+c=1
 
 Z_true <- generateRandomMatrix(N, K)  
 A_ <- matrix(rnorm(K*D,mean_a,sigma_a), nrow = K, ncol = D)
@@ -199,7 +203,7 @@ numero_colonne_diverse_da_zero_di_Z <- sum(colSums(Z_true != 0) > 0)
 numero_colonne_diverse_da_zero_di_Z
 
 result <- GibbsSampler_betabernoulli(alpha=-7, theta=13, sigma_x=sigma_x, sigma_a=sigma_a,  prior_variance_sigma_x, 
-                                        prior_variance_sigma_a,
+                                        a,b,c,
                                      n_tilde=30, n=N, A_=A_, X_=X_, n_iter=n_iter, initial_iters=initial_iters)
 result$K_vector
 
@@ -220,7 +224,9 @@ mean_a=1
 n_iter=1000
 initial_iters=100
 prior_variance_sigma_x=1
-prior_variance_sigma_a=1
+a=1
+b=1
+c=1
 
 Z_true <- generateRandomMatrix(N, K)  
 A_ <- matrix(rnorm(K*D,mean_a,sigma_a), nrow = K, ncol = D)
@@ -234,7 +240,7 @@ numero_colonne_diverse_da_zero_di_Z <- sum(colSums(Z_true != 0) > 0)
 numero_colonne_diverse_da_zero_di_Z
 
 result <- GibbsSampler_betabernoulli(alpha=-7, theta=13, sigma_x=sigma_x, sigma_a=sigma_a,  prior_variance_sigma_x, 
-                                        prior_variance_sigma_a,
+                                        a,b,c,
                                      n_tilde=30, n=N, A_=A_, X_=X_, n_iter=n_iter, initial_iters=initial_iters)
 result$K_vector
 ```

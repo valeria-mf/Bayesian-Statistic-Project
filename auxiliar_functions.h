@@ -60,11 +60,11 @@ double metropolis_step_sigma_x(double current_sigma_x, const MatrixXd& Z, const 
                                std::default_random_engine& generator, double prior_variance);
 
 
-/*
+
 
 // Function to sample A matrix
 MatrixXd sample_A(const MatrixXd& Z, const MatrixXd& X, double sigma_x, double sigma_a, std::default_random_engine& generator);
-*/
+
 //4.2
 MatrixXd sample2_A(const MatrixXd& Z, const MatrixXd& X, double &a, double &b, double c, std::default_random_engine& generator);
 
