@@ -264,10 +264,10 @@ MatrixXd sample2_A(const MatrixXd& Z, const MatrixXd& X, double &a, double &b, d
   double Sigma_posterior = 1/precision; // this is sigma^2, the variance, not the standard deviation
   
   // Posterior mean 
-  Eigen::VectorXd mu_posterior(D);  
-  for(unsigned d=0; d<D; ++d) {
+  Eigen::VectorXd mu_posterior(K);  
+  for(unsigned k=0; k<K; ++k) {
     std::normal_distribution<double> distr(0, c*Sigma_posterior); // sampling dei valori della media elemento per elemento    
-    mu_posterior(d) = distr(generator);
+    mu_posterior(k) = distr(generator);
   }
     
   // Sample from the posterior distribution for A
