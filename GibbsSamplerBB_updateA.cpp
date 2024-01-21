@@ -21,29 +21,37 @@ Rcpp::List GibbsSampler_betabernoulli( double alpha, double theta, double sigma_
      * * Anyway, in the vector of matrices  matrices Z with only non null columns will be inserted.
   */
    // Rcpp::Rcout << "Dimensioni di A: " << std::endl;
-    Rcpp::NumericMatrix mat_A(A_);
+   // Rcpp::NumericMatrix mat_A(A_);
     Rcpp::NumericMatrix mat_X(X_);
 
-    Eigen::Map<Eigen::MatrixXd> A(Rcpp::as<Eigen::Map<Eigen::MatrixXd>>(mat_A));
+   // Eigen::Map<Eigen::MatrixXd> A(Rcpp::as<Eigen::Map<Eigen::MatrixXd>>(mat_A));
     Eigen::Map<Eigen::MatrixXd> X(Rcpp::as<Eigen::Map<Eigen::MatrixXd>>(mat_X));
 
-  
+  std::default_random_engine generator;
+
+  // D:
+    const unsigned D = X.cols();
+ 
     // Initialization of Z and m:
     MatrixXd Z = Eigen::MatrixXd::Zero(n, n_tilde);
     VectorXd m(n_tilde);
     
-    std::default_random_engine generator;
+   
 
     std::bernoulli_distribution Z_initializer(0.5);
     for(unsigned i=0; i< n ; ++i)
-        for(unsigned j=0; j<n_tilde;++j)
-            Z(i, j) = Z_initializer(generator) ? 1 : 0;
+            Z(i, 0) = Z_initializer(generator) ? 1 : 0;
   //  std::cout << Z << std::endl;
 
+ //Initialization of A:
+  MatrixXd A = Eigen::MatrixXd::Zero(n_tilde, D);
+  std::normal_distribution<double> A_initializer(0,1);
+  for(unsigned i=0; i<n_tilde;++i)
+        for(unsigned j=0;j<D;++j)
+            A(i, j) = A_initializer(generator);
+  
 
-
-    // D:
-    const unsigned D = A.cols();
+    
 
     //create a set to put the generated Z matrices:
     matrix_collection Ret;
