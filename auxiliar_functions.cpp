@@ -261,12 +261,12 @@ MatrixXd sample2_A(const MatrixXd& Z, const MatrixXd& X, double &a, double &b, d
   //b = b + 0.5*(values - mean)^2; // update b
   std::gamma_distribution<double> distr(a, b);  
   double precision = pow(distr(generator),-1); // sto facendo sampling da una gamma
-  double Sigma_posterior = 1/precision; // this is sigma_A^2, the variance, not the standard deviation
+  double Sigma_A_posterior = 1/precision; // this is sigma_A^2, the variance, not the standard deviation
   
   // Posterior mean 
   Eigen::VectorXd mu_posterior(K);  
   for(unsigned k=0; k<K; ++k) {
-    std::normal_distribution<double> distr(0, c*Sigma_posterior); // Va aggiustato
+    std::normal_distribution<double> distr(0, c*Sigma_A_posterior); // Va aggiustato
     mu_posterior(k) = distr(generator);
   }
     
@@ -274,7 +274,7 @@ MatrixXd sample2_A(const MatrixXd& Z, const MatrixXd& X, double &a, double &b, d
   MatrixXd new_A(K, D);  
   for(unsigned k=0; k<K; ++k) {
     for(unsigned d=0; d<D; ++d) {
-      std::normal_distribution<double> distr(mu_posterior(d), Sigma_posterior);
+      std::normal_distribution<double> distr(mu_posterior(d), Sigma_A_posterior);
       new_A(k,d) = distr(generator); // sampling dei valori di A elemento per elemento    
     }
   }  
