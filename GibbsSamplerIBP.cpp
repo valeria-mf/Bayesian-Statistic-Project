@@ -9,7 +9,7 @@
 
 
 //[[Rcpp::export]]
-Rcpp::List GibbsSampler_IBP(const double alpha,const double gamma,const double sigma_a, const double sigma_x, const double theta, const int n, SEXP A_, SEXP X_, unsigned n_iter,unsigned initial_iters){
+Rcpp::List GibbsSampler_IBP(const double alpha,const double gamma,const double sigma_a, const double sigma_x, const double theta, const int n, SEXP A_, SEXP X_, unsigned UB, unsigned n_iter,unsigned initial_iters){
     std::default_random_engine generator;
 
     /* In this algorithm matrix Z are generated keeping only non null columns,
@@ -112,7 +112,7 @@ Rcpp::List GibbsSampler_IBP(const double alpha,const double gamma,const double s
             //sample the number of new features:
 
 
-            unsigned UB= K>20? 10:5;//da cambiare
+            
             Z.resize(n,K+UB);
 
             //update Z-part1:
