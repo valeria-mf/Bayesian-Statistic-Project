@@ -266,7 +266,7 @@ MatrixXd sample2_A(const MatrixXd& Z, const MatrixXd& X, double &a, double &b, d
   // Posterior mean 
   Eigen::VectorXd mu_posterior(K);  
   for(unsigned k=0; k<K; ++k) {
-    std::normal_distribution<double> distr(0, c*Sigma_posterior); // sampling dei valori della media elemento per elemento    
+    std::normal_distribution<double> distr(0, c*Sigma_posterior); // Va aggiustato
     mu_posterior(k) = distr(generator);
   }
     
