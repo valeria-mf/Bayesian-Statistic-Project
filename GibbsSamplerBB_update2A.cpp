@@ -14,7 +14,7 @@
 
 //[[Rcpp::export]]
 Rcpp::List GibbsSampler_betabernoulli( double alpha, double theta, double sigma_x,double sigma_a, double prior_variance_sigma_x, 
-                                       double a, double b, double c, int n_tilde,  int n,  SEXP A_, SEXP X_, unsigned n_iter, unsigned initial_iters){
+                                       double a, double b, double c, int n_tilde,  int n, SEXP X_, unsigned n_iter, unsigned initial_iters){
 
     /*STRATEGY:
      * When generating a new matrix the null columns will be moved at the end instead of being removed.
@@ -28,27 +28,33 @@ Rcpp::List GibbsSampler_betabernoulli( double alpha, double theta, double sigma_
     Eigen::Map<Eigen::MatrixXd> X(Rcpp::as<Eigen::Map<Eigen::MatrixXd>>(mat_X));
 
   
+// D:
+    const unsigned D = X.cols();
+ 
     // Initialization of Z and m:
     MatrixXd Z = Eigen::MatrixXd::Zero(n, n_tilde);
     VectorXd m(n_tilde);
     
-    std::default_random_engine generator;
+   
 
     std::bernoulli_distribution Z_initializer(0.5);
     for(unsigned i=0; i< n ; ++i)
-        for(unsigned j=0; j<n_tilde;++j)
-            Z(i, j) = Z_initializer(generator) ? 1 : 0;
+            Z(i, 0) = Z_initializer(generator) ? 1 : 0;
   //  std::cout << Z << std::endl;
+
+ //Initialization of A:
+  MatrixXd A = Eigen::MatrixXd::Zero(n_tilde, D);
+  std::normal_distribution<double> A_initializer(0,1);
+  for(unsigned i=0; i<n_tilde;++i)
+        for(unsigned j=0;j<D;++j)
+            A(i, j) = A_initializer(generator);
+  
 
   // prior of A
     std::gamma_distribution<double> distr(a, b);  
     double prior_precision_a = pow(distr(generator),-1); // sampling from a gamma
     double prior_variance_sigma_a = 1/prior_precision_a;
-
-
-
-    // D:
-    const unsigned D = A.cols();
+  
 
     //create a set to put the generated Z matrices:
     matrix_collection Ret;
