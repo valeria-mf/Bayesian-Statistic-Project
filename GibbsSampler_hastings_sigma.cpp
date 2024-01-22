@@ -13,8 +13,8 @@
 
 
 //[[Rcpp::export]]
-Rcpp::List GibbsSampler_betabernoulli( double alpha, double theta, double sigma_x,double sigma_a, double prior_variance_sigma_x, 
-                                       double prior_variance_sigma_a,int n_tilde,  int n,  SEXP A_, SEXP X_, unsigned n_iter, unsigned initial_iters){
+Rcpp::List GibbsSampler_betabernoulli( double alpha, double theta, double sigma_x,double sigma_a, double a_x, double b_x, 
+                                       double a_a, double b_a, int n_tilde,  int n,  SEXP A_, SEXP X_, unsigned n_iter, unsigned initial_iters){
 
     /*STRATEGY:
      * When generating a new matrix the null columns will be moved at the end instead of being removed.
@@ -174,10 +174,8 @@ Rcpp::List GibbsSampler_betabernoulli( double alpha, double theta, double sigma_
         double proposal_variance_factor_sigma_x = 0.1 * sigma_x; // e.g., 10% of current sigma_x
         double proposal_variance_factor_sigma_a = 0.1 * sigma_a; // e.g., 10% of current sigma_a
         
-        
-        sigma_x = metropolis_step_sigma_x(sigma_x,Z,X,A,sigma_a,proposal_variance_factor_sigma_x,generator,prior_variance_sigma_x);
-        sigma_a = metropolis_step_sigma_a(sigma_a,Z,X,A,sigma_x,proposal_variance_factor_sigma_a,generator,prior_variance_sigma_a);
-        
+        sigma_x = metropolis_step_sigma_x(sigma_x, Z, X, A, sigma_a, proposal_variance_factor_sigma_x, generator, a_x, b_x);
+        sigma_a = metropolis_step_sigma_a(sigma_a, Z, X, A, sigma_x, proposal_variance_factor_sigma_a, generator, a_a, b_a);
         
 
 
