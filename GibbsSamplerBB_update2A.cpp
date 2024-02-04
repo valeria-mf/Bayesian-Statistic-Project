@@ -53,8 +53,8 @@ Rcpp::List GibbsSampler_betabernoulli( double alpha, double theta, double sigma_
   // prior of A
     std::gamma_distribution<double> distr(a, b);  
     double prior_precision_a = pow(distr(generator),-1); // sampling from a gamma
-    double prior_variance_sigma_a = 1/prior_precision_a;
-  
+    double sigma_a = 1/prior_precision_a;
+    
 
     //create a set to put the generated Z matrices:
     matrix_collection Ret;
@@ -66,10 +66,14 @@ Rcpp::List GibbsSampler_betabernoulli( double alpha, double theta, double sigma_
     VectorXd sigmaA_vector(n_iter+initial_iters);
     VectorXd sigmaX_vector(n_iter+initial_iters);
     Eigen::MatrixXd Expected_A_given_XZ;
+
     
 
-
-
+  // initialization of parameters (for the sample2_A)
+    double mu_mean = 0;
+    double mu_var = c*sigma_a^2;
+    
+  
     for (Eigen::Index it=0;it<n_iter+initial_iters;++it){
 
         MatrixXd Znew;
@@ -189,8 +193,10 @@ Rcpp::List GibbsSampler_betabernoulli( double alpha, double theta, double sigma_
         sigma_x = metropolis_step_sigma_x(sigma_x,Z,X,A,sigma_a,proposal_variance_factor_sigma_x,generator,a_x, b_x);
         //aggiungo anche commento per sigma_a che non c'era, forse qui non serve?
         //sigma_a = metropolis_step_sigma_a(sigma_a,Z,X,A,sigma_x,proposal_variance_factor_sigma_a,generator,a_a, b_a);
+
         
-        A = sample2_A(Z, X, &a, &b, c, generator); // update of A
+      
+        A = sample2_A(Z, X, &a, &b, &mu_mean, &mu_var, generator); // update of A
 
 
 
