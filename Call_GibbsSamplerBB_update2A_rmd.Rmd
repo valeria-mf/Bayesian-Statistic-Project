@@ -223,6 +223,9 @@ sigma_a=5
 mean_a=1
 n_iter=1000
 initial_iters=100
+a=1
+b=1
+c=1
 
 # Parameters for Inverse Gamma Distribution
 a_x <- 1
@@ -242,7 +245,7 @@ numero_colonne_diverse_da_zero_di_Z <- sum(colSums(Z_true != 0) > 0)
 numero_colonne_diverse_da_zero_di_Z
 
 result <- GibbsSampler_betabernoulli(alpha=-7, theta=13, sigma_x=sigma_x, sigma_a=sigma_a,  
-                                     a_x = a_x, b_x = b_x, a_a = a_a, b_a = b_a,
+                                     a_x = a_x, b_x = b_x, a_a = a_a, b_a = b_a, a = a, b = b, c = c,
                                      n_tilde=30, n=N, A_=A_, X_=X_, n_iter=n_iter, initial_iters=initial_iters)
 result$K_vector
 ```
