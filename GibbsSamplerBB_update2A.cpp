@@ -13,7 +13,7 @@
 
 
 //[[Rcpp::export]]
-Rcpp::List GibbsSampler_betabernoulli( double alpha, double theta, double sigma_x,double sigma_a, double a_x, double b_x, double a_a, double b_a, 
+Rcpp::List GibbsSampler_betabernoulli( double alpha, double theta, double sigma_x, double a_x, double b_x, double a_a, double b_a, 
                                        double a, double b, double c, int n_tilde,  int n, SEXP X_, unsigned n_iter, unsigned initial_iters){
 
     /*STRATEGY:
