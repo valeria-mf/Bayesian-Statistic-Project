@@ -191,10 +191,10 @@ sigma_a=5
 mean_a=0
 n_iter=1000
 initial_iters=100
-a_x= 1
-b_x= 1
-a_a=1
-b_a=1
+a_x= 2
+b_x= 6
+a_a=2
+b_a=15
 
 
 A_ <- matrix(rnorm(K*D,mean_a,sigma_a), nrow = K, ncol = D)

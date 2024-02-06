@@ -55,6 +55,10 @@ Rcpp::List GibbsSampler_betabernoulli( double alpha, double theta, double sigma_
     VectorXd sigmaA_vector(n_iter+initial_iters);
     VectorXd sigmaX_vector(n_iter+initial_iters);
     Eigen::MatrixXd Expected_A_given_XZ;
+    int accepted_iterations_x=0;
+    int accepted_iterations_a=0;
+    long double acceptance_probability_x;
+    long double acceptance_probability_a;
     
 
 
@@ -171,11 +175,11 @@ Rcpp::List GibbsSampler_betabernoulli( double alpha, double theta, double sigma_
                     }
                 }
         }
-        double proposal_variance_factor_sigma_x = 0.5;
-        double proposal_variance_factor_sigma_a = 0.5;
+        double proposal_variance_factor_sigma_x = 0.01;
+        double proposal_variance_factor_sigma_a = 0.01;
         
-        sigma_x = metropolis_step_sigma_x(sigma_x, Z, X, A, sigma_a, proposal_variance_factor_sigma_x, generator, a_x, b_x);
-        sigma_a = metropolis_step_sigma_a(sigma_a, Z, X, A, sigma_x, proposal_variance_factor_sigma_a, generator, a_a, b_a);
+        sigma_x = metropolis_step_sigma_x(sigma_x, Z, X, A, sigma_a, proposal_variance_factor_sigma_x, generator, a_x, b_x, accepted_iterations_x);
+        sigma_a = metropolis_step_sigma_a(sigma_a, Z, X, A, sigma_x, proposal_variance_factor_sigma_a, generator, a_a, b_a, accepted_iterations_a);
         
 
 
@@ -230,6 +234,9 @@ Rcpp::List GibbsSampler_betabernoulli( double alpha, double theta, double sigma_
         K_vector(it)=K;
         sigmaX_vector(it)=sigma_x;
         sigmaA_vector(it)=sigma_a;
+        acceptance_probability_x=accepted_iterations_x/(n_iter+initial_iters);
+        acceptance_probability_a=accepted_iterations_a/(n_iter+initial_iters);
+        
 
 
 
@@ -239,5 +246,7 @@ Rcpp::List GibbsSampler_betabernoulli( double alpha, double theta, double sigma_
               Ret.push_back(eliminate_null_columns(Z).first);
         }
     return Rcpp::List::create(Rcpp::Named("Z_list") = Ret, Rcpp::Named("K_vector")=K_vector, Rcpp::Named("logPXZ_vector")=logPXZ_vector, Rcpp::Named("Expected_A") = Expected_A_given_XZ,
-                                          Rcpp::Named("sigmaA_vector")=sigmaA_vector, Rcpp::Named("sigmaX_vector")=sigmaX_vector);
+                                          Rcpp::Named("sigmaA_vector")=sigmaA_vector, Rcpp::Named("sigmaX_vector")=sigmaX_vector,
+                                          Rcpp::Named("acceptance_probability_x")=acceptance_probability_x, 
+                                          Rcpp::Named("acceptance_probability_a")=acceptance_probability_a);
 }

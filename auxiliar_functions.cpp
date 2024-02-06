@@ -84,14 +84,17 @@ long double calculate_likelihood(const MatrixXd& Z, const MatrixXd& X, const Mat
 long double calculate_log_likelihood(const MatrixXd& Z, const MatrixXd& X, 
                                      const MatrixXd& M, double sigma_x, 
                                      double sigma_a, int n_tilde, unsigned D, int n) {
+  
   // Compute determinant part
-  long double log_det_part = -0.5 * D * log((Z.transpose() * Z + sigma_x * sigma_x / sigma_a / sigma_a * Eigen::MatrixXd::Identity(n_tilde, n_tilde)).determinant());
+  long double log_det_part = 0.5 * D * log((sigma_x*sigma_x*M).determinant());
   
   // Compute trace part
   MatrixXd mat = X.transpose() * (Eigen::MatrixXd::Identity(n, n) - (Z * M * Z.transpose())) * X;
   long double trace_part = -0.5 / (sigma_x * sigma_x) * mat.trace();
   
-  return log_det_part + trace_part;
+  long double den_part = n*D/2*log(2*M_PI)+n*D*log(sigma_x)+n_tilde*D*log(sigma_a);
+  
+  return log_det_part + trace_part - den_part;
 }
 
 // Function to calculate the probability of k = certain value in binomial distribution
@@ -169,7 +172,7 @@ double compute_cardinality(Eigen::MatrixXd Z) {
 // Funzione per eseguire un passo di Metropolis-Hastings per sigma_x con una prior Inverse Gamma e una proposta lognormale
 double metropolis_step_sigma_x(double current_sigma_x, const MatrixXd& Z, const MatrixXd& X, 
                                const MatrixXd& A, double sigma_a, double proposal_variance,
-                               std::default_random_engine& generator, double a_x, double b_x) {
+                               std::default_random_engine& generator, double a_x, double b_x, int& accepted_iterations_x) {
   // Trasforma current_sigma_x in eta_x (scala logaritmica)
   double current_eta_x = log(current_sigma_x);
   
@@ -190,11 +193,12 @@ double metropolis_step_sigma_x(double current_sigma_x, const MatrixXd& Z, const 
   double new_log_prior = (a_x * log(b_x) - lgamma(a_x) - (a_x + 1) * log(new_sigma_x) - b_x / new_sigma_x);
   
   // Includi la correzione Jacobiana nella log-rapporto di accettazione
-  double log_acceptance_ratio = (new_log_likelihood + new_log_prior + new_eta_x) - (current_log_likelihood + current_log_prior + current_eta_x);
+  double log_acceptance_ratio = std::min(0.0,(new_log_likelihood + new_log_prior + new_eta_x) - (current_log_likelihood + current_log_prior + current_eta_x));
   
   // Decidi se accettare il nuovo valore
   std::uniform_real_distribution<double> uniform(0.0, 1.0);
   if (log(uniform(generator)) < log_acceptance_ratio) {
+    ++accepted_iterations_x;
     return new_sigma_x;
   } else {
     return current_sigma_x;
@@ -204,7 +208,7 @@ double metropolis_step_sigma_x(double current_sigma_x, const MatrixXd& Z, const 
 // Funzione per eseguire un passo di Metropolis-Hastings per sigma_a con una prior Inverse Gamma e una proposta lognormale
 double metropolis_step_sigma_a(double current_sigma_a, const MatrixXd& Z, const MatrixXd& X, 
                                const MatrixXd& A, double sigma_x, double proposal_variance,
-                               std::default_random_engine& generator, double a_a, double b_a) {
+                               std::default_random_engine& generator, double a_a, double b_a, int& accepted_iterations_a) {
   // Trasforma current_sigma_a in eta_a (scala logaritmica)
   double current_eta_a = log(current_sigma_a);
   
@@ -225,12 +229,17 @@ double metropolis_step_sigma_a(double current_sigma_a, const MatrixXd& Z, const 
   double new_log_prior = (a_a * log(b_a) - lgamma(a_a) - (a_a + 1) * log(new_sigma_a) - b_a / new_sigma_a);
   
   // Includi la correzione Jacobiana nella log-rapporto di accettazione
-  double log_acceptance_ratio = (new_log_likelihood + new_log_prior + new_eta_a) - (current_log_likelihood + current_log_prior + current_eta_a);
+  double log_acceptance_ratio = std::min(0.0,(new_log_likelihood + new_log_prior + new_eta_a) - (current_log_likelihood + current_log_prior + current_eta_a));
   
   // Decidi se accettare il nuovo valore
   std::uniform_real_distribution<double> uniform(0.0, 1.0);
+  
   if (log(uniform(generator)) < log_acceptance_ratio) {
+   std::cout << log_acceptance_ratio<< std::endl;
+    ++(accepted_iterations_a);
+    std::cout<< accepted_iterations_a<<std::endl;
     return new_sigma_a;
+    
   } else {
     return current_sigma_a;
   }

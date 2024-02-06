@@ -13,7 +13,7 @@
 
 
 //[[Rcpp::export]]
-Rcpp::List GibbsSampler_betabernoulli( double alpha, double theta, double sigma_x, double a_x, double b_x, double a_a, double b_a, 
+Rcpp::List GibbsSampler_betabernoulli( double alpha, double theta, double sigma_x, double sigma_a, double a_x, double b_x, double a_a, double b_a, 
                                        double a, double b, double c, int n_tilde,  int n, SEXP X_, unsigned n_iter, unsigned initial_iters){
 
     /*STRATEGY:
@@ -72,7 +72,7 @@ Rcpp::List GibbsSampler_betabernoulli( double alpha, double theta, double sigma_
 
   // initialization of parameters (for the sample2_A)
     double mu_mean = 0;
-    double mu_var = c*sigma_a^2;
+    double mu_var = c*pow(sigma_a,2);
     
   
     for (Eigen::Index it=0;it<n_iter+initial_iters;++it){
@@ -197,7 +197,7 @@ Rcpp::List GibbsSampler_betabernoulli( double alpha, double theta, double sigma_
 
         
       
-        A = sample2_A(Z, X, A, &a, &b, &mu_mean, &mu_var, generator); // update of A
+        A = sample2_A(Z, X, A, a, b, mu_mean, mu_var, generator); // update of A
 
 
 
