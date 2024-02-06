@@ -179,8 +179,8 @@ double metropolis_step_sigma_x(double current_sigma_x, const MatrixXd& Z, const 
   double new_sigma_x = exp(new_eta_x); // Torna alla scala originale
   
   // Calcola la log-verosimiglianza per sigma_x corrente e proposto
-  MatrixXd M_current = (Z.transpose() * Z + MatrixXd::Identity(Z.cols(), Z.cols()) * pow(sigma_x/current_sigma_x, 2)).inverse();
-  double current_log_likelihood = calculate_log_likelihood(Z, X, M_current, sigma_x, current_sigma_x, Z.cols(), A.cols(), Z.rows());
+  MatrixXd M_current = (Z.transpose() * Z + MatrixXd::Identity(Z.cols(), Z.cols()) * pow(current_sigma_x/sigma_a, 2)).inverse();
+  double current_log_likelihood = calculate_log_likelihood(Z, X, M_current, current_sigma_x,sigma_a, Z.cols(), A.cols(), Z.rows());
   
   MatrixXd M_new = (Z.transpose() * Z + MatrixXd::Identity(Z.cols(), Z.cols()) * pow(sigma_x/new_sigma_x, 2)).inverse();
   double new_log_likelihood = calculate_log_likelihood(Z, X, M_new, sigma_x, new_sigma_x, Z.cols(), A.cols(), Z.rows());
