@@ -21,11 +21,12 @@ Rcpp::List GibbsSampler_betabernoulli( double alpha, double theta, double sigma_
      * * Anyway, in the vector of matrices  matrices Z with only non null columns will be inserted.
   */
    // Rcpp::Rcout << "Dimensioni di A: " << std::endl;
-    Rcpp::NumericMatrix mat_A(A_);
+    
     Rcpp::NumericMatrix mat_X(X_);
 
-    Eigen::Map<Eigen::MatrixXd> A(Rcpp::as<Eigen::Map<Eigen::MatrixXd>>(mat_A));
     Eigen::Map<Eigen::MatrixXd> X(Rcpp::as<Eigen::Map<Eigen::MatrixXd>>(mat_X));
+    
+    std::default_random_engine generator;
 
   
 // D:

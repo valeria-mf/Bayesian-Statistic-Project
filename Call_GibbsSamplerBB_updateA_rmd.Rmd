@@ -129,42 +129,84 @@ plot_combined_graphs <- function(n_iter, initial_iters, result) {
 
 ```
 
+Definiamo ora una funzione per generare la matrice Z che rispetti il modello Beta-Bernoulli. Creiamo una matrice Z con dimensione N x n_tilde e poi rimuoviamo le colonne nulle ottenendo una matrice N x K, dove K indica il numero di features
 ```{r}
-generateRandomMatrix <- function(n_righe, n_colonne) {
-  randomVector <- sample(0:1, n_righe * n_colonne, replace = TRUE)    #genera Z(i,j)=1 with P=0.5
-  randomMatrix <- matrix(randomVector, nrow = n_righe, ncol = n_colonne)
-  return(randomMatrix)
+
+generateRandomMatrix <- function(N, alpha, theta, n_tilde) {
+  m=rep(0,n_tilde)
+  Z=matrix(0, nrow=N, ncol=n_tilde) 
+  for(i in 1:N){
+    #Estraggo tra le features già osservate
+    features_osservate=(m!=0)
+    k=sum(m!=0)
+    if(k!=0){
+      for(j in which(features_osservate)){
+        Z[i,j]=rbinom(1,1,(m[j]-alpha)/(theta+i-1))
+      }
+      
+
+    }
+    #Estraggo le nuove features
+    nuove_features=rbinom(1,n_tilde-k,1-(theta+alpha+i-1)/(theta+i-1))
+    if(nuove_features!=0){
+      if(nuove_features==1){
+        Z[i,k+1]=1
+      }
+      else{
+        range=(k+1):(k+nuove_features)
+        Z[i,range]=1
+        
+      }
+     
+    }
+    
+    #Aggiorno il vettore m
+    m=colSums(Z)
+  }
+    
+    
+  return(Z)
 }
 ```
 
 ```{r}
 
+#Genero Z
+alpha=-1
+theta=4
 N=21
-K=21 
+n_tilde=24
+Z_true= generateRandomMatrix(N, alpha, theta, n_tilde)
+K=sum(colSums(Z_true) != 0) #numero colonne diverse da 0 di Z
+K
+colonne_non_zero <- colSums(Z_true) != 0
+Z_true <- Z_true[, colonne_non_zero]   #rimuovo le colonne pari a zero
+
+#X e A
 D=30
 sigma_x=2
 sigma_a=5
-mean_a=1
+mean_a=0
 n_iter=1000
 initial_iters=100
-prior_variance_sigma_x=1
-prior_variance_sigma_a=1
+a_x= 1
+b_x= 1
+a_a=1
+b_a=1
 
 
-Z_true <- generateRandomMatrix(N, K)  
 A_ <- matrix(rnorm(K*D,mean_a,sigma_a), nrow = K, ncol = D)
 X_ <- matrix(0, nrow=N, ncol=D)
 for (i in 1:N){
   X_[i,] <- mvrnorm(1, mu = Z_true[i,]%*%A_ , Sigma = sigma_x^2*diag(D) )
-
-  
 }
+
 numero_colonne_diverse_da_zero_di_Z <- sum(colSums(Z_true != 0) > 0)
 numero_colonne_diverse_da_zero_di_Z
 
-result <- GibbsSampler_betabernoulli(alpha=-7, theta=13, sigma_x=sigma_x, sigma_a=sigma_a,  prior_variance_sigma_x, 
-                                        prior_variance_sigma_a,
-                                     n_tilde=30, n=N, A_=A_, X_=X_, n_iter=n_iter, initial_iters=initial_iters)
+
+result <- GibbsSampler_betabernoulli(alpha, theta, sigma_x, sigma_a, a_x, b_x, a_a, b_a, 
+                                     n_tilde, n=N, X_, n_iter, initial_iters)
 result$K_vector
 
 ```
@@ -176,33 +218,43 @@ plot_dual_heatmaps(A_, result$Expected_A)
 ```
 
 ```{r}
+#Genero Z
+alpha=-10
+theta=12
 N=21
-K=18 
+n_tilde=24
+Z_true= generateRandomMatrix(N, alpha, theta, n_tilde)
+K=sum(colSums(Z_true) != 0) #numero colonne diverse da 0 di Z
+K
+colonne_non_zero <- colSums(Z_true) != 0
+Z_true <- Z_true[, colonne_non_zero]   #rimuovo le colonne pari a zero
+
+#X e A
 D=30
 sigma_x=2
 sigma_a=5
-mean_a=1
+mean_a=0
 n_iter=1000
 initial_iters=100
-prior_variance_sigma_x=1
-prior_variance_sigma_a=1
+a_x= 1
+b_x= 1
+a_a=1
+b_a=1
 
-Z_true <- generateRandomMatrix(N, K)  
+
 A_ <- matrix(rnorm(K*D,mean_a,sigma_a), nrow = K, ncol = D)
 X_ <- matrix(0, nrow=N, ncol=D)
 for (i in 1:N){
   X_[i,] <- mvrnorm(1, mu = Z_true[i,]%*%A_ , Sigma = sigma_x^2*diag(D) )
-
-  
 }
+
 numero_colonne_diverse_da_zero_di_Z <- sum(colSums(Z_true != 0) > 0)
 numero_colonne_diverse_da_zero_di_Z
 
-result <- GibbsSampler_betabernoulli(alpha=-7, theta=13, sigma_x=sigma_x, sigma_a=sigma_a,  prior_variance_sigma_x, 
-                                        prior_variance_sigma_a,
-                                     n_tilde=30, n=N, A_=A_, X_=X_, n_iter=n_iter, initial_iters=initial_iters)
-result$K_vector
 
+result <- GibbsSampler_betabernoulli(alpha, theta, sigma_x, sigma_a, a_x, b_x, a_a, b_a, 
+                                     n_tilde, n=N, X_, n_iter, initial_iters)
+result$K_vector
 ```
 
 ```{r}
@@ -211,35 +263,42 @@ plot_dual_heatmaps(A_, result$Expected_A)
 ```
 
 ```{r}
+#Genero Z
+alpha=-0.1
+theta=0.5
 N=21
-K=24 
+n_tilde=24
+Z_true= generateRandomMatrix(N, alpha, theta, n_tilde)
+K=sum(colSums(Z_true) != 0) #numero colonne diverse da 0 di Z
+K
+colonne_non_zero <- colSums(Z_true) != 0
+Z_true <- Z_true[, colonne_non_zero]   #rimuovo le colonne pari a zero
+
+#X e A
 D=30
 sigma_x=2
 sigma_a=5
-mean_a=1
+mean_a=0
 n_iter=1000
 initial_iters=100
+a_x= 1
+b_x= 1
+a_a=1
+b_a=1
 
-# Parameters for Inverse Gamma Distribution
-a_x <- 1
-b_x <- 1
-a_a <- 1
-b_a <- 1
 
-Z_true <- generateRandomMatrix(N, K)  
 A_ <- matrix(rnorm(K*D,mean_a,sigma_a), nrow = K, ncol = D)
 X_ <- matrix(0, nrow=N, ncol=D)
 for (i in 1:N){
   X_[i,] <- mvrnorm(1, mu = Z_true[i,]%*%A_ , Sigma = sigma_x^2*diag(D) )
-
-  
 }
+
 numero_colonne_diverse_da_zero_di_Z <- sum(colSums(Z_true != 0) > 0)
 numero_colonne_diverse_da_zero_di_Z
 
-result <- GibbsSampler_betabernoulli(alpha=-7, theta=13, sigma_x=sigma_x, sigma_a=sigma_a,  
-                                       a_x = a_x, b_x = b_x, a_a = a_a, b_a = b_a, 
-                                       n_tilde=30, n=N, A_=A_, X_=X_, n_iter=n_iter, initial_iters=initial_iters)
+
+result <- GibbsSampler_betabernoulli(alpha, theta, sigma_x, sigma_a, a_x, b_x, a_a, b_a, 
+                                     n_tilde, n=N, X_, n_iter, initial_iters)
 result$K_vector
 ```
 

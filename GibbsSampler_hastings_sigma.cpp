@@ -171,8 +171,8 @@ Rcpp::List GibbsSampler_betabernoulli( double alpha, double theta, double sigma_
                     }
                 }
         }
-        double proposal_variance_factor_sigma_x = 0.1 * sigma_x; // e.g., 10% of current sigma_x
-        double proposal_variance_factor_sigma_a = 0.1 * sigma_a; // e.g., 10% of current sigma_a
+        double proposal_variance_factor_sigma_x = 0.5;
+        double proposal_variance_factor_sigma_a = 0.5;
         
         sigma_x = metropolis_step_sigma_x(sigma_x, Z, X, A, sigma_a, proposal_variance_factor_sigma_x, generator, a_x, b_x);
         sigma_a = metropolis_step_sigma_a(sigma_a, Z, X, A, sigma_x, proposal_variance_factor_sigma_a, generator, a_a, b_a);

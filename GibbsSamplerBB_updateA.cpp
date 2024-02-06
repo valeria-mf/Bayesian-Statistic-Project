@@ -40,7 +40,8 @@ Rcpp::List GibbsSampler_betabernoulli( double alpha, double theta, double sigma_
 
     std::bernoulli_distribution Z_initializer(0.5);
     for(unsigned i=0; i< n ; ++i)
-            Z(i, 0) = Z_initializer(generator) ? 1 : 0;
+      for(unsigned j=0; j<n_tilde; ++j)
+            Z(i, j) = Z_initializer(generator) ? 1 : 0;
   //  std::cout << Z << std::endl;
 
  //Initialization of A:

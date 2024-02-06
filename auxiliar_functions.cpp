@@ -182,8 +182,8 @@ double metropolis_step_sigma_x(double current_sigma_x, const MatrixXd& Z, const 
   MatrixXd M_current = (Z.transpose() * Z + MatrixXd::Identity(Z.cols(), Z.cols()) * pow(current_sigma_x/sigma_a, 2)).inverse();
   double current_log_likelihood = calculate_log_likelihood(Z, X, M_current, current_sigma_x,sigma_a, Z.cols(), A.cols(), Z.rows());
   
-  MatrixXd M_new = (Z.transpose() * Z + MatrixXd::Identity(Z.cols(), Z.cols()) * pow(sigma_x/new_sigma_x, 2)).inverse();
-  double new_log_likelihood = calculate_log_likelihood(Z, X, M_new, sigma_x, new_sigma_x, Z.cols(), A.cols(), Z.rows());
+  MatrixXd M_new = (Z.transpose() * Z + MatrixXd::Identity(Z.cols(), Z.cols()) * pow(new_sigma_x/sigma_a, 2)).inverse();
+  double new_log_likelihood = calculate_log_likelihood(Z, X, M_new, new_sigma_x, sigma_a, Z.cols(), A.cols(), Z.rows());
   
   // Calcola il log-prior per sigma_x corrente e proposto sotto la distribuzione Inverse Gamma
   double current_log_prior = (a_x * log(b_x) - lgamma(a_x) - (a_x + 1) * log(current_sigma_x) - b_x / current_sigma_x);
@@ -262,13 +262,12 @@ MatrixXd sample_A(const MatrixXd& Z, const MatrixXd& X, double sigma_x, double s
 }
 
 
-
 // Function to sample A matrix with new prior (4.2)
 // (a,b): parameters of sigma_a  /  c: constant in the variance of mu_a
 MatrixXd sample2_A(const MatrixXd& Z, const MatrixXd& X, MatrixXd A, double &a, double &b, double &mu_mean, double &mu_var, std::default_random_engine& generator) {
   unsigned K = Z.cols(); // Number of features  
   unsigned D = X.cols(); // Dimension of data
-    
+  
   // Posterior precision and variance
   a = a + 0.5*K*D; // update a
   b = b + 0.5*(A.transpose()*A).trace(); // update b
@@ -280,7 +279,7 @@ MatrixXd sample2_A(const MatrixXd& Z, const MatrixXd& X, MatrixXd A, double &a, 
   double a_mean = 0;
   for(unsigned cont=0; cont<K; cont++){
     for(unsigned contt=0; contt<D; contt++)
-            a_mean += A(cont,contt)/(K*D);
+      a_mean += A(cont,contt)/(K*D);
   }
   Eigen::VectorXd mu_posterior(K);  
   mu_mean = K*a_mean/(K-1);
@@ -289,7 +288,7 @@ MatrixXd sample2_A(const MatrixXd& Z, const MatrixXd& X, MatrixXd A, double &a, 
     std::normal_distribution<double> distr(mu_mean, mu_var);
     mu_posterior(k) = distr(generator);
   }
-    
+  
   // Sample from the posterior distribution for A
   MatrixXd new_A(K, D);  
   for(unsigned k=0; k<K; ++k) {
