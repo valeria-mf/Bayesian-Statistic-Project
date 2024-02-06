@@ -64,7 +64,7 @@ double metropolis_step_sigma_x(double current_sigma_x, const MatrixXd& Z, const 
 MatrixXd sample_A(const MatrixXd& Z, const MatrixXd& X, double sigma_x, double sigma_a, std::default_random_engine& generator);
 
 //4.2
-MatrixXd sample2_A(const MatrixXd& Z, const MatrixXd& X, double &a, double &b, double &mu_mean, double &mu_var, std::default_random_engine& generator);
+MatrixXd sample2_A(const MatrixXd& Z, const MatrixXd& X, MatrixXd A, double &a, double &b, double &mu_mean, double &mu_var, std::default_random_engine& generator);
 
 // Required for the computation of log[P(X,Z)]
 double compute_cardinality(const Eigen::MatrixXd Z);
