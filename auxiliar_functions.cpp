@@ -277,7 +277,11 @@ MatrixXd sample2_A(const MatrixXd& Z, const MatrixXd& X, double &a, double &b, d
   double Sigma_A_posterior = 1/precision; // this is sigma_A^2, the variance, not the standard deviation
   
   // Posterior mean 
-  double a_mean =/////////
+  double a_mean = 0;
+  for(unsigned cont=0; cont<K; cont++){
+    for(unsigned contt=0; contt<D; contt++)
+            a_mean += A(cont,contt)/(K*D);
+  }
   Eigen::VectorXd mu_posterior(K);  
   mu_mean = K*a_mean/(K-1);
   mu_var = mu_var/((K-1)*D);
