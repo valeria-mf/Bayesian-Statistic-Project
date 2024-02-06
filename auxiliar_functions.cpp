@@ -265,7 +265,7 @@ MatrixXd sample_A(const MatrixXd& Z, const MatrixXd& X, double sigma_x, double s
 
 // Function to sample A matrix with new prior (4.2)
 // (a,b): parameters of sigma_a  /  c: constant in the variance of mu_a
-MatrixXd sample2_A(const MatrixXd& Z, const MatrixXd& X, double &a, double &b, double &mu_mean, double &mu_var, std::default_random_engine& generator) {
+MatrixXd sample2_A(const MatrixXd& Z, const MatrixXd& X, MatrixXd& A, double &a, double &b, double &mu_mean, double &mu_var, std::default_random_engine& generator) {
   unsigned K = Z.cols(); // Number of features  
   unsigned D = X.cols(); // Dimension of data
     
