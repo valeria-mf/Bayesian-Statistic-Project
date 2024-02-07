@@ -193,6 +193,8 @@ a_x= 1
 b_x= 1
 a_a=1
 b_a=1
+proposal_variance_factor_sigma_x=0.01
+proposal_variance_factor_sigma_a=1
 
 
 A_ <- matrix(rnorm(K*D,mean_a,sigma_a), nrow = K, ncol = D)
@@ -206,8 +208,12 @@ numero_colonne_diverse_da_zero_di_Z
 
 
 result <- GibbsSampler_betabernoulli(alpha, theta, sigma_x, sigma_a, a_x, b_x, a_a, b_a, 
-                                     n_tilde, n=N, X_, n_iter, initial_iters)
+                                     n_tilde, n=N, X_, n_iter, initial_iters, proposal_variance_factor_sigma_x,
+                                     proposal_variance_factor_sigma_a)
 result$K_vector
+
+print(paste("Acceptance probability for sigma_a:", result$acceptance_probability_a))
+print(paste("Acceptance probability for sigma_x:", result$acceptance_probability_x))
 
 ```
 
@@ -240,6 +246,8 @@ a_x= 1
 b_x= 1
 a_a=1
 b_a=1
+proposal_variance_factor_sigma_x=0.01
+proposal_variance_factor_sigma_a=1
 
 
 A_ <- matrix(rnorm(K*D,mean_a,sigma_a), nrow = K, ncol = D)
@@ -253,8 +261,12 @@ numero_colonne_diverse_da_zero_di_Z
 
 
 result <- GibbsSampler_betabernoulli(alpha, theta, sigma_x, sigma_a, a_x, b_x, a_a, b_a, 
-                                     n_tilde, n=N, X_, n_iter, initial_iters)
+                                     n_tilde, n=N, X_, n_iter, initial_iters, proposal_variance_factor_sigma_x,
+                                     proposal_variance_factor_sigma_a)
 result$K_vector
+
+print(paste("Acceptance probability for sigma_a:", result$acceptance_probability_a))
+print(paste("Acceptance probability for sigma_x:", result$acceptance_probability_x))
 ```
 
 ```{r}
@@ -285,6 +297,8 @@ a_x= 1
 b_x= 1
 a_a=1
 b_a=1
+proposal_variance_factor_sigma_x=0.01
+proposal_variance_factor_sigma_a=1
 
 
 A_ <- matrix(rnorm(K*D,mean_a,sigma_a), nrow = K, ncol = D)
@@ -298,8 +312,12 @@ numero_colonne_diverse_da_zero_di_Z
 
 
 result <- GibbsSampler_betabernoulli(alpha, theta, sigma_x, sigma_a, a_x, b_x, a_a, b_a, 
-                                     n_tilde, n=N, X_, n_iter, initial_iters)
+                                     n_tilde, n=N, X_, n_iter, initial_iters, proposal_variance_factor_sigma_x,
+                                     proposal_variance_factor_sigma_a)
 result$K_vector
+
+print(paste("Acceptance probability for sigma_a:", result$acceptance_probability_a))
+print(paste("Acceptance probability for sigma_x:", result$acceptance_probability_x))  
 ```
 
 

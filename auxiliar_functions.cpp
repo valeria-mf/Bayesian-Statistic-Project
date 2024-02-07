@@ -235,9 +235,9 @@ double metropolis_step_sigma_a(double current_sigma_a, const MatrixXd& Z, const 
   std::uniform_real_distribution<double> uniform(0.0, 1.0);
   
   if (log(uniform(generator)) < log_acceptance_ratio) {
-   std::cout << log_acceptance_ratio<< std::endl;
+    //std::cout << log_acceptance_ratio<< std::endl;
     ++(accepted_iterations_a);
-    std::cout<< accepted_iterations_a<<std::endl;
+    //std::cout<< accepted_iterations_a<<std::endl;
     return new_sigma_a;
     
   } else {
@@ -282,7 +282,7 @@ MatrixXd sample2_A(const MatrixXd& Z, const MatrixXd& X, MatrixXd A, double &sig
   b = b + 0.5*(A.transpose()*A).trace(); // update b
   std::gamma_distribution<double> distr(a, b);  
   double precision = pow(distr(generator),-1); // sto facendo sampling da una gamma
-  double Sigma_A_posterior = 1/precision; // this is sigma_A^2, the variance, not the standard deviation
+  sigma_a = 1/precision; // this is sigma_A^2, the variance, not the standard deviation
   
   // Posterior mean 
   double a_mean = 0;
@@ -302,7 +302,7 @@ MatrixXd sample2_A(const MatrixXd& Z, const MatrixXd& X, MatrixXd A, double &sig
   MatrixXd new_A(K, D);  
   for(unsigned k=0; k<K; ++k) {
     for(unsigned d=0; d<D; ++d) {
-      std::normal_distribution<double> distr(mu_posterior(d), Sigma_A_posterior);
+      std::normal_distribution<double> distr(mu_posterior(d), sigma_a);
       new_A(k,d) = distr(generator); // sampling dei valori di A elemento per elemento    
     }
   }  

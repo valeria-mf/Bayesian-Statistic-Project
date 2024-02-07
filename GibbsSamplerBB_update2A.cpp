@@ -13,8 +13,10 @@
 
 
 //[[Rcpp::export]]
-Rcpp::List GibbsSampler_betabernoulli( double alpha, double theta, double sigma_x, double a_x, double b_x, double a_a, double b_a, 
-                                       double a, double b, double c, int n_tilde,  int n, SEXP X_, unsigned n_iter, unsigned initial_iters){
+Rcpp::List GibbsSampler_betabernoulli( double alpha, double theta, double sigma_x,  double a_x, double b_x, double a_a, double b_a, 
+                                       double a, double b, double c, int n_tilde,  int n, SEXP X_, unsigned n_iter, 
+                                       unsigned initial_iters, double proposal_variance_factor_sigma_x, 
+                                       double proposal_variance_factor_sigma_a){
 
     /*STRATEGY:
      * When generating a new matrix the null columns will be moved at the end instead of being removed.
@@ -53,8 +55,8 @@ Rcpp::List GibbsSampler_betabernoulli( double alpha, double theta, double sigma_
 
   // prior of A
     std::gamma_distribution<double> distr(a, b);  
-    double precision_a = pow(distr(generator),-1); // sampling from a gamma
-    double sigma_a = 1/precision_a;
+    double prior_precision_a = pow(distr(generator),-1); // sampling from a gamma
+    double sigma_a = 1/prior_precision_a;
     
 
     //create a set to put the generated Z matrices:
@@ -67,6 +69,10 @@ Rcpp::List GibbsSampler_betabernoulli( double alpha, double theta, double sigma_
     VectorXd sigmaA_vector(n_iter+initial_iters);
     VectorXd sigmaX_vector(n_iter+initial_iters);
     Eigen::MatrixXd Expected_A_given_XZ;
+    int accepted_iterations_x=0;
+    int accepted_iterations_a=0;
+    long double acceptance_probability_x;
+    long double acceptance_probability_a;
 
     
 
@@ -187,18 +193,20 @@ Rcpp::List GibbsSampler_betabernoulli( double alpha, double theta, double sigma_
                     }
                 }
         }
-        double proposal_variance_factor_sigma_x = 0.1 * sigma_x; // e.g., 10% of current sigma_x
-        double proposal_variance_factor_sigma_a = 0.1 * sigma_a; // e.g., 10% of current sigma_a
+
         
         
-        sigma_x = metropolis_step_sigma_x(sigma_x,Z,X,A,sigma_a,proposal_variance_factor_sigma_x,generator,a_x, b_x);
+        sigma_x = metropolis_step_sigma_x(sigma_x,Z,X,A,sigma_a,proposal_variance_factor_sigma_x,generator,a_x, b_x, accepted_iterations_x);
         //aggiungo anche commento per sigma_a che non c'era, forse qui non serve?
-        //sigma_a = metropolis_step_sigma_a(sigma_a,Z,X,A,sigma_x,proposal_variance_factor_sigma_a,generator,a_a, b_a);
+        //sigma_a = metropolis_step_sigma_a(sigma_a,Z,X,A,sigma_x,proposal_variance_factor_sigma_a,generator,a_a, b_a, accepted_iterations_a);
 
         
       
         A = sample2_A(Z, X, A, sigma_a, a, b, mu_mean, mu_var, generator); // update of A
-      
+        
+        
+
+
 
         
         //Alla fine di ogni iterazione calcolo la quantità log[P(X|Z)]
@@ -250,6 +258,7 @@ Rcpp::List GibbsSampler_betabernoulli( double alpha, double theta, double sigma_
         K_vector(it)=K;
         sigmaX_vector(it)=sigma_x;
         sigmaA_vector(it)=sigma_a;
+        
 
 
 
@@ -258,6 +267,12 @@ Rcpp::List GibbsSampler_betabernoulli( double alpha, double theta, double sigma_
         if(it>=initial_iters)
               Ret.push_back(eliminate_null_columns(Z).first);
         }
+    
+    acceptance_probability_x=static_cast<double>(accepted_iterations_x) /(n_iter+initial_iters);
+    acceptance_probability_a=static_cast<double>(accepted_iterations_a) /(n_iter+initial_iters);
+    
     return Rcpp::List::create(Rcpp::Named("Z_list") = Ret, Rcpp::Named("K_vector")=K_vector, Rcpp::Named("logPXZ_vector")=logPXZ_vector, Rcpp::Named("Expected_A") = Expected_A_given_XZ,
-                                          Rcpp::Named("sigmaA_vector")=sigmaA_vector, Rcpp::Named("sigmaX_vector")=sigmaX_vector);
+                                          Rcpp::Named("sigmaA_vector")=sigmaA_vector, Rcpp::Named("sigmaX_vector")=sigmaX_vector,
+                                          Rcpp::Named("acceptance_probability_x")=acceptance_probability_x, 
+                                          Rcpp::Named("acceptance_probability_a")=acceptance_probability_a);
 }
