@@ -166,7 +166,58 @@ Rcpp::List GibbsSampler_IBP(const double alpha,const double gamma,const double s
             
         }
 
+        //Alla fine di ogni iterazione calcolo la quantità log[P(X,Z)]
+        //----------------------------------------------------------------------
 
+
+        //Per l'IBP utilizzo Eq 14 e 26:
+
+        int K = A.rows();
+        int D = A.cols();
+
+        Eigen::MatrixXd Zplus = eliminate_null_columns(Z).first;
+        int Kplus = Zplus.cols();
+
+        // Eq 26 dopo averla messa nel logaritmo:
+
+        long double eq_26_log_denominator = -(n * D / 2) * log(2 * 3.14159265359) - (n - Kplus) * D * log(sigma_x) - Kplus * D * log(sigma_a) - D / 2 * log((Zplus.transpose() * Zplus + sigma_x *sigma_x /sigma_a /sigma_a * Eigen::MatrixXd::Identity(Zplus.cols(),Zplus.cols())).determinant());
+
+        Eigen::MatrixXd MM = (Zplus.transpose() * Zplus + sigma_x * sigma_x / sigma_a / sigma_a *
+                                                          Eigen::MatrixXd::Identity(Zplus.cols(), Zplus.cols())).inverse();
+
+        MatrixXd matmat = X.transpose() * (Eigen::MatrixXd::Identity(n, n) - (Zplus * MM * Zplus.transpose())) * X;
+        long double eq_26_log_exponential = -matmat.trace() / sigma_x / sigma_x / 2;
+        long double eq_26_log = eq_26_log_denominator + eq_26_log_exponential;
+        //std::cout << "eq_26_log = eq_26_log_denominator + eq_26_log_exponential = " << eq_26_log_denominator << " + " << eq_26_log_exponential << " = " << eq_26_log << std::endl;
+
+
+        // eq 14 dopo averla messa nel logaritmo
+
+        long double Hn = 0;
+        for(int cont = 1; cont <= n; cont++)
+        {Hn += 1/cont;}
+        long double eq_14_before_productory = compute_cardinality(Zplus) -log(tgamma(Kplus)) + Kplus*log(alpha)-alpha*Hn;
+
+        Eigen::VectorXd mm = fill_m(Zplus);
+        long double eq_14_log_productory = 0;
+        for (size_t k = 1; k < Kplus; k++) {
+            eq_14_log_productory += log(tgamma(n-mm(k))) +log(tgamma(mm(k)-1))-log(tgamma(n));
+        }
+        long double eq_14_log = eq_14_before_productory + eq_14_log_productory; // A volte ritorna valori positivi: questo implica che P(Z)>1 che è impossibile.
+        // DA RIVEDERE
+        //std::cout << "eq_14_log = eq_14_before_productory + eq_14_log_productory = " << eq_14_before_productory << " + " << eq_14_log_productory << " = " << eq_14_log << std::endl;
+
+        // log[P(X,Z)] = log[P(X|Z)P(Z)] = log[P(X|Z)] + log[P(Z)]       (log(Equation 21) + log(Equation 12))
+
+        long double pXZ_log = eq_14_log + eq_26_log;
+        //std::cout << "pXZ_log = eq_14_log + eq_26_log = " <<  eq_14_log << " + " << eq_26_log << " = " << pXZ_log << std::endl;
+        //std::cout << "pXZ_log = " << pXZ_log << std::endl;
+
+        Eigen::MatrixXd Expected_A_given_XZ = (Zplus.transpose()*Zplus+pow(sigma_x/sigma_a,2)*Eigen::MatrixXd::Identity(Zplus.cols(), Zplus.cols())).inverse()*Zplus.transpose()*X;
+        std::cout << Expected_A_given_XZ << std::endl;
+        //----------------------------------------------------------------------
+        //FINE calcolo log[P(X,Z)]
+          
         if(it>=initial_iters){
 
              Ret.push_back(Z);
