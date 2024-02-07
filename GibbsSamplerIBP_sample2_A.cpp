@@ -197,7 +197,7 @@ Rcpp::List GibbsSampler_betabernoulli( double alpha, double theta, double sigma_
 
         
       
-        A = sample2_A(Z, X, A, &a, &b, &mu_mean, &mu_var, generator); // update of A
+        A = sample2_A(Z, X, A, a, b, mu_mean, mu_var, generator); // update of A
 
 
 
