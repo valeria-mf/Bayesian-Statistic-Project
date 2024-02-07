@@ -161,14 +161,18 @@ Rcpp::List GibbsSampler_IBP(const double alpha,const double gamma,const double s
             for (; j >= Znew.cols() + new_feat; --j) {
                 Z(i, j) = 0;
             }
+            
+            
+            
         }
 
 
-    if(it>=initial_iters){
+        if(it>=initial_iters){
 
-        Ret.push_back(eliminate_null_columns(Z).first);
-    }
+             Ret.push_back(Z);
+        }
 
     }
-    return Rcpp::List::create(Rcpp::Named("result") = Ret);
+      return Rcpp::List::create(Rcpp::Named("Z_list") = Ret, Rcpp::Named("K_vector")=K_vector,
+                                Rcpp::Named("logPXZ_vector")=logPXZ_vector, Rcpp::Named("Expected_A") = Expected_A_given_XZ);;
 }
