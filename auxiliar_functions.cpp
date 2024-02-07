@@ -252,7 +252,7 @@ MatrixXd sample_A(const MatrixXd& Z, const MatrixXd& X, double sigma_x, double s
   unsigned D = X.cols(); // Dimension of data
   
   // Posterior precision and covariance
-  MatrixXd Sigma_posterior_inv = (1 / (sigma_x * sigma_x)) * Z.transpose() * Z + (1 / (sigma_a * sigma_a)) * MatrixXd::Identity(K, K);
+  MatrixXd Sigma_posterior_inv = (1.0 / (sigma_x * sigma_x)) * Z.transpose() * Z + (1.0 / (sigma_a * sigma_a)) * MatrixXd::Identity(K, K);
   Eigen::LLT<MatrixXd> llt(Sigma_posterior_inv); // Cholesky decomposition for numerical stability
   MatrixXd Sigma_posterior = llt.solve(MatrixXd::Identity(K, K)); // Invert the precision matrix
   
