@@ -14,7 +14,7 @@
 
 //[[Rcpp::export]]
 Rcpp::List GibbsSampler_betabernoulli( double alpha, double theta, double sigma_x, double a_x, double b_x, double a_a, double b_a, 
-                                       double a, double b, double c, int n_tilde,  int n, SEXP X_, unsigned n_iter, unsigned initial_iters){
+                                       double a, double b, double c,  int n, SEXP X_, unsigned n_iter, unsigned initial_iters, unsigned UB){
 
     /*STRATEGY:
      * When generating a new matrix the null columns will be moved at the end instead of being removed.
@@ -33,10 +33,13 @@ Rcpp::List GibbsSampler_betabernoulli( double alpha, double theta, double sigma_
     const unsigned D = X.cols();
  
     // Initialization of Z and m:
-    MatrixXd Z = Eigen::MatrixXd::Zero(n, n_tilde);
-    VectorXd m(n_tilde);
+    MatrixXd Z = Eigen::MatrixXd::Zero(n, 1);
+    VectorXd m;
     
-   
+   // X : n x D
+   // Z : n x K
+   // A : K x D
+   // X = Z * A
 
     std::bernoulli_distribution Z_initializer(0.5);
     for(unsigned i=0; i< n ; ++i)
@@ -44,11 +47,11 @@ Rcpp::List GibbsSampler_betabernoulli( double alpha, double theta, double sigma_
   //  std::cout << Z << std::endl;
 
  //Initialization of A:
+  int n_tilde = 1;
   MatrixXd A = Eigen::MatrixXd::Zero(n_tilde, D);
   std::normal_distribution<double> A_initializer(0,1);
-  for(unsigned i=0; i<n_tilde;++i)
-        for(unsigned j=0;j<D;++j)
-            A(i, j) = A_initializer(generator);
+  for(unsigned j=0;j<D;++j)
+      A(0, j) = A_initializer(generator);
   
 
   // prior of A
@@ -77,16 +80,17 @@ Rcpp::List GibbsSampler_betabernoulli( double alpha, double theta, double sigma_
   
     for (Eigen::Index it=0;it<n_iter+initial_iters;++it){
 
+        n_tilde = A.rows();
         MatrixXd Znew;
-
-        //INITIALIZE M MATRIX:
-        MatrixXd M=(Z.transpose()*Z -  Eigen::MatrixXd::Identity(n_tilde,n_tilde)*pow(sigma_x/sigma_a,2)).inverse();
 
 
         for (Eigen::Index i=0; i<n;++i) {
 
-            Eigen::VectorXd z_i = Z.row(i);
+            Eigen::Index z_cols=Z.cols();
+            MatrixXd M(z_cols,z_cols);
 
+
+            Eigen::VectorXd z_i = Z.row(i);
 
             Z.row(i).setZero();
 
@@ -95,6 +99,9 @@ Rcpp::List GibbsSampler_betabernoulli( double alpha, double theta, double sigma_
             matvec = eliminate_null_columns(Z);
             Znew = matvec.first; //the new matrix that I will update
             positions = matvec.second; //to see the positions where I remove the columns
+
+            M=(Znew.transpose()*Znew -  Eigen::MatrixXd::Identity(z_cols,z_cols)*pow(sigma_x/sigma_a,2)).inverse();
+
 
             Z.row(i) = z_i;
             m = fill_m(Znew);
@@ -118,7 +125,7 @@ Rcpp::List GibbsSampler_betabernoulli( double alpha, double theta, double sigma_
 
 
 
-                //P(X|Z) when z_ij=1:
+                //P(X|Z) when z_ij=0:
                 Z(i, count) = 0;
                 M = update_M(M, Z.row(i));
                 
@@ -141,51 +148,48 @@ Rcpp::List GibbsSampler_betabernoulli( double alpha, double theta, double sigma_
                 ++count;
             }
 
-                unsigned n_res = n_tilde - K;
-                if (n_res > 0) {
-                    //sample the number of new features:
+            Znew = Z; // Znew senza colonne nulle
+            Z.resize(n,K+UB); // Z ora avrà UB nuove colonne nulle
 
-                    //update Z-part1:
-                    Eigen::Index j = 0;
-                    for (; j < Znew.cols(); ++j)
-                        Z.col(j) = Znew.col(j);
-                    for (Eigen::Index kk = j; kk < Z.cols(); ++kk)
-                        Z.col(kk).setZero();
-
-
-                    M = (Z.transpose() * Z -
-                         Eigen::MatrixXd::Identity(n_tilde, n_tilde) * pow(sigma_x / sigma_a, 2)).inverse();
+            //update Z-part1:
+            Eigen::Index j = 0;
+            for (; j < Znew.cols(); ++j)
+                Z.col(j) = Znew.col(j);
+            for (Eigen::Index kk = Znew.cols(); kk < Z.cols(); ++kk)
+                Z.col(kk).setZero();
 
 
-                    double prob = 1 - (theta + alpha + n - 1) / (theta + n - 1);
-
-                    Eigen::VectorXd prob_new(n_res);
-                    for (unsigned itt = 0; itt < n_res; ++itt) {
-                        double bin_prob = binomialProbability(n_res, prob, itt);
-                        Z(i, j + itt) = 1;
-                        M = update_M(M, Z.row(i));
-                        
-                        long double p_xz = calculate_likelihood(Z,X,M,sigma_x,sigma_a,n_tilde,D,n);
-                        prob_new(itt) = bin_prob * p_xz;
-                    }
-                    // Normalize posterior probabilities
-                    double sum_posterior = prob_new.sum();
-                    for (unsigned l = 0; l < prob_new.size(); ++l) {
-                        prob_new(l) /= sum_posterior;
-                    }
-
-                    // Sample the number of new features based on posterior probabilities
-                    //std::discrete_distribution<int> distribution(prob_new.begin(), prob_new.end());
-                    std::discrete_distribution<int> distribution(prob_new.data(), prob_new.data() + prob_new.size());
-                    int new_feat = distribution(generator);
+            M = (Z.transpose() * Z -
+                     Eigen::MatrixXd::Identity(Z.cols(), Z.cols()) * pow(sigma_x / sigma_a, 2)).inverse();
 
 
-                    //update Z-part2:
-                    j--;
-                    for (; j >= Znew.cols() + new_feat; --j) {
-                        Z(i, j) = 0;
-                    }
-                }
+            double prob=tgamma(theta+alpha+n)/tgamma(theta+alpha)*tgamma(theta)/tgamma(theta+n)*gamma;
+            Eigen::VectorXd prob_new(UB);
+            for (unsigned itt = 0; itt < UB; ++itt) {
+                double poi_prob = poissonProbability(prob, itt);
+                Z(i, j + itt) = 1;
+                M = update_M(M, Z.row(i));
+
+                long double p_xz = calculate_likelihood(Z,X,M,sigma_x,sigma_a,n_tilde,D,n);
+                prob_new(itt) = poi_prob * p_xz;
+            }
+            // Normalize posterior probabilities
+            double sum_posterior = prob_new.sum();
+            for (unsigned l = 0; l < prob_new.size(); ++l) {
+                prob_new(l) /= sum_posterior;
+            }
+
+            // Sample the number of new features based on posterior probabilities
+            //std::discrete_distribution<int> distribution(prob_new.begin(), prob_new.end());
+            std::discrete_distribution<int> distribution(prob_new.data(), prob_new.data() + prob_new.size());
+            int new_feat = distribution(generator);
+
+
+            //update Z-part2:
+            j--;
+            for (; j >= Znew.cols() + new_feat; --j) {
+                Z(i, j) = 0;
+            }
         }
         double proposal_variance_factor_sigma_x = 0.1 * sigma_x; // e.g., 10% of current sigma_x
         double proposal_variance_factor_sigma_a = 0.1 * sigma_a; // e.g., 10% of current sigma_a
@@ -197,54 +201,62 @@ Rcpp::List GibbsSampler_betabernoulli( double alpha, double theta, double sigma_
 
         
       
-        A = sample2_A(Z, X, A, sigma_a, a, b, mu_mean, mu_var, generator); // update of A
+        A = sample2_A(Z, X, A, &a, &b, &mu_mean, &mu_var, generator); // update of A
 
 
 
-        
-        //Alla fine di ogni iterazione calcolo la quantità log[P(X|Z)]
+
+        //Alla fine di ogni iterazione calcolo la quantità log[P(X,Z)]
         //----------------------------------------------------------------------
 
-        //Per il BB utilizzo Eq 21 e 12:
+
+        //Per l'IBP utilizzo Eq 14 e 26:
 
         int K = A.rows();
         int D = A.cols();
 
-        // Eq 21 dopo averla messa nel logaritmo:
+        Eigen::MatrixXd Zplus = eliminate_null_columns(Z).first;
+        int Kplus = Zplus.cols();
 
-        long double eq_21_log_denominator = -(n * D / 2) * log(2 * pi) - (n - K) * D * log(sigma_x) - K * D * log(sigma_a) - D / 2 *log((Z.transpose() *Z + sigma_x * sigma_x /sigma_a /sigma_a *Eigen::MatrixXd::Identity(Z.cols(), Z.cols())).determinant());                                                                                    //
+        // Eq 26 dopo averla messa nel logaritmo:
 
-        Eigen::MatrixXd MM = (Z.transpose() * Z + sigma_x * sigma_x / sigma_a / sigma_a *Eigen::MatrixXd::Identity(Z.cols(), Z.cols())).inverse();
+        long double eq_26_log_denominator = -(n * D / 2) * log(2 * 3.14159265359) - (n - Kplus) * D * log(sigma_x) - Kplus * D * log(sigma_a) - D / 2 * log((Zplus.transpose() * Zplus + sigma_x *sigma_x /sigma_a /sigma_a * Eigen::MatrixXd::Identity(Zplus.cols(),Zplus.cols())).determinant());
 
-        MatrixXd matmat = X.transpose() * (Eigen::MatrixXd::Identity(n, n) - (Z * MM * Z.transpose())) * X;
-        long double eq_21_log_exponential = -matmat.trace() / sigma_x / sigma_x / 2;
-        long double eq_21_log = eq_21_log_denominator + eq_21_log_exponential;
-        
-        // Rcpp::Rcout << "eq_21_log_denominator + eq_21_log_exponential = " << eq_21_log_denominator << " + " << eq_21_log_exponential << " = " << eq_21_log << endl;
+        Eigen::MatrixXd MM = (Zplus.transpose() * Zplus + sigma_x * sigma_x / sigma_a / sigma_a *
+                                                          Eigen::MatrixXd::Identity(Zplus.cols(), Zplus.cols())).inverse();
 
-        // eq 12 dopo averla messa nel logaritmo
+        MatrixXd matmat = X.transpose() * (Eigen::MatrixXd::Identity(n, n) - (Zplus * MM * Zplus.transpose())) * X;
+        long double eq_26_log_exponential = -matmat.trace() / sigma_x / sigma_x / 2;
+        long double eq_26_log = eq_26_log_denominator + eq_26_log_exponential;
+        //std::cout << "eq_26_log = eq_26_log_denominator + eq_26_log_exponential = " << eq_26_log_denominator << " + " << eq_26_log_exponential << " = " << eq_26_log << std::endl;
 
-        long double eq_12_log_fraction = compute_cardinality(Z);
 
-        Eigen::VectorXd mm = fill_m(Z);
-        long double eq_12_log_product = 0;
-        for (size_t k = 0; k < K; k++) {
-            eq_12_log_product += log(-alpha / K) + log(tgamma(mm(k) + alpha / K)) + log(tgamma(n - mm(k) + 1)) - log(tgamma(n + 1 + alpha / K));
+        // eq 14 dopo averla messa nel logaritmo
+
+        long double Hn = 0;
+        for(int cont = 1; cont <= n; cont++)
+        {Hn += 1/cont;}
+        long double eq_14_before_productory = compute_cardinality(Zplus) -log(tgamma(Kplus)) + Kplus*log(alpha)-alpha*Hn;
+
+        Eigen::VectorXd mm = fill_m(Zplus);
+        long double eq_14_log_productory = 0;
+        for (size_t k = 1; k < Kplus; k++) {
+            eq_14_log_productory += log(tgamma(n-mm(k))) +log(tgamma(mm(k)-1))-log(tgamma(n));
         }
-        long double eq_12_log = eq_12_log_fraction + eq_12_log_product; // A volte ritorna valori positivi: questo implica che P(Z)>1 che è impossibile.
-                                                                        // CALCOLI DA RIVEDERE
-
-        // Rcpp::Rcout << "eq_12_log = eq_12_log_fraction + eq_12_log_product = " << eq_12_log_fraction << " + " << eq_12_log_product << " = " << eq_12_log << endl;
+        long double eq_14_log = eq_14_before_productory + eq_14_log_productory; // A volte ritorna valori positivi: questo implica che P(Z)>1 che è impossibile.
+        // DA RIVEDERE
+        //std::cout << "eq_14_log = eq_14_before_productory + eq_14_log_productory = " << eq_14_before_productory << " + " << eq_14_log_productory << " = " << eq_14_log << std::endl;
 
         // log[P(X,Z)] = log[P(X|Z)P(Z)] = log[P(X|Z)] + log[P(Z)]       (log(Equation 21) + log(Equation 12))
 
-        long double pXZ_log = eq_12_log + eq_21_log;
-        // Rcpp::Rcout << "pXZ_log = eq_12_log + eq_21_log = " <<  eq_12_log << " + " << eq_21_log << " = " << pXZ_log << std::endl;
-        
-        Expected_A_given_XZ = (Z.transpose()*Z+pow(sigma_x/sigma_a,2)*Eigen::MatrixXd::Identity(Z.cols(), Z.cols())).inverse()*Z.transpose()*X;
-        
+        long double pXZ_log = eq_14_log + eq_26_log;
+        //std::cout << "pXZ_log = eq_14_log + eq_26_log = " <<  eq_14_log << " + " << eq_26_log << " = " << pXZ_log << std::endl;
+        //std::cout << "pXZ_log = " << pXZ_log << std::endl;
+
+        Eigen::MatrixXd Expected_A_given_XZ = (Zplus.transpose()*Zplus+pow(sigma_x/sigma_a,2)*Eigen::MatrixXd::Identity(Zplus.cols(), Zplus.cols())).inverse()*Zplus.transpose()*X;
+        std::cout << Expected_A_given_XZ << std::endl;
         //----------------------------------------------------------------------
-        //FINE calcolo log[P(X|Z)]
+        //FINE calcolo log[P(X,Z)]
         
         logPXZ_vector(it)=pXZ_log;
         //fill the K_vector
