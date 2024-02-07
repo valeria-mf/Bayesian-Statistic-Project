@@ -200,8 +200,8 @@ Rcpp::List GibbsSampler_betabernoulli( double alpha, double theta, double sigma_
         A = sample2_A(Z, X, A, a, b, mu_mean, mu_var, generator); // update of A
 
         std::gamma_distribution<double> distr(a, b);  
-        double precision = pow(distr(generator),-1);
-        double Sigma_A_posterior = 1/precision;
+        precision = pow(distr(generator),-1);
+        sigma_a = 1/precision;
 
         
         //Alla fine di ogni iterazione calcolo la quantità log[P(X|Z)]
