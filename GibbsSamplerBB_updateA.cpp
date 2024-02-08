@@ -209,8 +209,8 @@ Rcpp::List GibbsSampler_betabernoulli( double alpha, double theta, double sigma_
         //Per il BB utilizzo Eq 21 e 12:
 
         
-        VectorXd vect=fill_m(Z);
-        K=count_nonzero(vect);
+        
+      
         int D = A.cols();
 
         // Eq 21 dopo averla messa nel logaritmo:
