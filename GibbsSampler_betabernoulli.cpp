@@ -148,7 +148,7 @@ Rcpp::List GibbsSampler_betabernoulli( double alpha, double theta, double sigma_
                         Z(i, j + itt) = 1;
                         M = update_M(M, Z.row(i));
                         
-                        long double p_xz = calculate_likelihood(Z,X,M,sigma_x,sigma_a,n_tilde,D,n);
+                        long double p_xz = calculate_likelihood(Z,X,M,sigma_x,sigma_a,K+n_res,D,n);
                         prob_new(itt) = bin_prob * p_xz;
                     }
                     // Normalize posterior probabilities
