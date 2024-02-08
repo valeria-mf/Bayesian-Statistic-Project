@@ -277,7 +277,7 @@ Rcpp::List GibbsSampler_betabernoulli( double alpha, double theta, double sigma_
 
         
         if(it>=initial_iters)
-              Ret.push_back(eliminate_null_columns(Z).first);
+              Ret.push_back(Zplus);
         }
     acceptance_probability_x=static_cast<double>(accepted_iterations_x) /(n_iter+initial_iters);
     acceptance_probability_a=static_cast<double>(accepted_iterations_a) /(n_iter+initial_iters);
