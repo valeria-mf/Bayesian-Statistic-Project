@@ -208,12 +208,12 @@ Rcpp::List GibbsSampler_IBP(const double alpha,const double gamma,const double s
         long double Hn = 0;
         for(int cont = 1; cont <= n; cont++)
         {Hn += 1/cont;}
-        long double eq_14_before_productory = compute_cardinality(Zplus) -log(tgamma(Kplus)) + Kplus*log(alpha)-alpha*Hn;
+        long double eq_14_before_productory = compute_cardinality(Zplus) -log(tgamma(Kplus+1)) + Kplus*log(alpha)-alpha*Hn;
 
         Eigen::VectorXd mm = fill_m(Zplus);
         long double eq_14_log_productory = 0;
         for (size_t k = 1; k < Kplus; k++) {
-            eq_14_log_productory += log(tgamma(n-mm(k))) +log(tgamma(mm(k)-1))-log(tgamma(n));
+            eq_14_log_productory += log(tgamma(n-mm(k)+1)) +log(tgamma(mm(k)))-log(tgamma(n+1));
         }
         long double eq_14_log = eq_14_before_productory + eq_14_log_productory; // A volte ritorna valori positivi: questo implica che P(Z)>1 che è impossibile.
         // DA RIVEDERE
