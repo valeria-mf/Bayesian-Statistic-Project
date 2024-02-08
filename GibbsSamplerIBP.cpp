@@ -43,6 +43,8 @@ Rcpp::List GibbsSampler_IBP(const double alpha,const double gamma,const double s
     
 
       for (Eigen::Index it=0;it<n_iter+initial_iters;++it){
+          
+        unsigned K;
 
         MatrixXd Znew;
 
@@ -67,7 +69,7 @@ Rcpp::List GibbsSampler_IBP(const double alpha,const double gamma,const double s
             m=fill_m(Znew);
 
             //update the number of observed features:
-            unsigned  K= count_nonzero(m);
+            K= count_nonzero(m);
 
             Eigen::Index count=0;
 
@@ -172,6 +174,9 @@ Rcpp::List GibbsSampler_IBP(const double alpha,const double gamma,const double s
             
             
         }
+          
+        VectorXd vect=fill_m(Z);
+        K=count_nonzero(vect);
 
         //Alla fine di ogni iterazione calcolo la quantità log[P(X,Z)]
         //----------------------------------------------------------------------
@@ -179,7 +184,7 @@ Rcpp::List GibbsSampler_IBP(const double alpha,const double gamma,const double s
 
         //Per l'IBP utilizzo Eq 14 e 26:
 
-        int K = A.rows();
+        
         int D = A.cols();
 
         Eigen::MatrixXd Zplus = eliminate_null_columns(Z).first;
@@ -230,8 +235,7 @@ Rcpp::List GibbsSampler_IBP(const double alpha,const double gamma,const double s
         logPXZ_vector(it)=pXZ_log;
         
         //fill the K_vector
-        VectorXd vect=fill_m(Z);
-        K_vector(it)=count_nonzero(vect);
+        K_vector(it)=K;
         
         
           
