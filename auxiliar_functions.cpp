@@ -259,7 +259,7 @@ MatrixXd sample_A(const MatrixXd& Z, const MatrixXd& X, double sigma_x, double s
   
   // Posterior mean
   //MatrixXd mu_posterior = posterior_var * (Z.transpose() * X) / (sigma_x * sigma_x);
-  MatrixXd mu_posterior = (Z.transpose()*Z + (sigma_x*sigma_x/posterior_var)*MatrixXd::Identity(K,K)).inverse()*Z.transpose()*X;
+  MatrixXd mu_posterior = (Z.transpose()*Z + (sigma_x*sigma_x*posterior_var_inv)*MatrixXd::Identity(K,K)).inverse()*Z.transpose()*X;
   
   // Sample from the posterior distribution for A
   MatrixXd new_A(K, D);
