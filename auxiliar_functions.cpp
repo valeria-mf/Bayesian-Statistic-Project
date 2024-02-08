@@ -255,10 +255,11 @@ MatrixXd sample_A(const MatrixXd& Z, const MatrixXd& X, double sigma_x, double s
   MatrixXd posterior_var_inv = (1 / (sigma_x * sigma_x)) * Z.transpose() * Z + (1 / (sigma_a * sigma_a)) * MatrixXd::Identity(K, K);
   //Eigen::LLT<MatrixXd> llt(posterior_var_inv); // Cholesky decomposition for numerical stability
   //MatrixXd posterior_var = llt.solve(MatrixXd::Identity(K, K)); // Invert the precision matrix
-  MatrixXd posterior_var = posterior_var_inv.inverse()
+  MatrixXd posterior_var = posterior_var_inv.inverse();
   
   // Posterior mean
-  MatrixXd mu_posterior = posterior_var * (Z.transpose() * X) / (sigma_x * sigma_x);
+  //MatrixXd mu_posterior = posterior_var * (Z.transpose() * X) / (sigma_x * sigma_x);
+  MatrixXd mu_posterior = (Z.transpose()*X + (sigma_x*sigma_x/posterior_var)*MatrixXd::Identity(K,K)).inverse()*Z.transpose()*X;
   
   // Sample from the posterior distribution for A
   MatrixXd new_A(K, D);
