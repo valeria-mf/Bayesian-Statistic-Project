@@ -58,6 +58,8 @@ Rcpp::List GibbsSampler_betabernoulli( double alpha, double theta, double sigma_
 
     for (Eigen::Index it=0;it<n_iter+initial_iters;++it){
 
+        unsigned K;
+
         MatrixXd Znew;
 
         //INITIALIZE M MATRIX:
@@ -81,7 +83,7 @@ Rcpp::List GibbsSampler_betabernoulli( double alpha, double theta, double sigma_
             m = fill_m(Znew);
 
             //update the number of observed features:
-            unsigned K = count_nonzero(m);
+            K = m.size();
 
             Eigen::Index count = 0;
 
