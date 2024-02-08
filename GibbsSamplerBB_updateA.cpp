@@ -188,6 +188,7 @@ Rcpp::List GibbsSampler_betabernoulli( double alpha, double theta, double sigma_
         }
         
         
+        
         sigma_x = metropolis_step_sigma_x(sigma_x,Z,X,A,sigma_a,proposal_variance_factor_sigma_x,generator,a_x, b_x,  accepted_iterations_x);
         sigma_a = metropolis_step_sigma_a(sigma_a,Z,X,A,sigma_x,proposal_variance_factor_sigma_a,generator,a_a, b_a,  accepted_iterations_a);
         
@@ -242,8 +243,12 @@ Rcpp::List GibbsSampler_betabernoulli( double alpha, double theta, double sigma_
         //FINE calcolo log[P(X|Z)]
         
         logPXZ_vector(it)=pXZ_log;
+        
         //fill the K_vector
-        K_vector(it)=K;
+        VectorXd vect=fill_m(Z);
+        K_vector(it)=count_nonzero(vect);
+        
+        
         sigmaX_vector(it)=sigma_x;
         sigmaA_vector(it)=sigma_a;
 

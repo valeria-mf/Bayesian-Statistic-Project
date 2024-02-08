@@ -34,6 +34,13 @@ Rcpp::List GibbsSampler_IBP(const double alpha,const double gamma,const double s
 
     //create a vector to put the generated Z matrices:
     matrix_collection Ret;
+    
+    //create a vector to put the K values
+    VectorXd K_vector(n_iter+initial_iters);
+    //create a vector to put the log[P(X|Z)]
+    VectorXd logPXZ_vector(n_iter+initial_iters);
+    Eigen::MatrixXd Expected_A_given_XZ;
+    
 
       for (Eigen::Index it=0;it<n_iter+initial_iters;++it){
 
@@ -214,9 +221,19 @@ Rcpp::List GibbsSampler_IBP(const double alpha,const double gamma,const double s
         //std::cout << "pXZ_log = " << pXZ_log << std::endl;
 
         Eigen::MatrixXd Expected_A_given_XZ = (Zplus.transpose()*Zplus+pow(sigma_x/sigma_a,2)*Eigen::MatrixXd::Identity(Zplus.cols(), Zplus.cols())).inverse()*Zplus.transpose()*X;
-        std::cout << Expected_A_given_XZ << std::endl;
+        //std::cout << Expected_A_given_XZ << std::endl;
         //----------------------------------------------------------------------
         //FINE calcolo log[P(X,Z)]
+        
+        
+        
+        logPXZ_vector(it)=pXZ_log;
+        
+        //fill the K_vector
+        VectorXd vect=fill_m(Z);
+        K_vector(it)=count_nonzero(vect);
+        
+        
           
         if(it>=initial_iters){
 
