@@ -38,7 +38,7 @@ long double calculate_likelihood(const MatrixXd& Z, const MatrixXd& X, const Mat
 //we need it for numerical stability reasons
 long double calculate_log_likelihood(const MatrixXd& Z, const MatrixXd& X, 
                                      const MatrixXd& M, double sigma_x, 
-                                     double sigma_a, int n_tilde, unsigned D, int n);
+                                     double sigma_a, unsigned K, unsigned D, int n);
 
 // Function to calculate the probability of k = certain value in binomial distribution
 double binomialProbability(unsigned n_res, double prob, unsigned k);
@@ -51,7 +51,7 @@ double poissonProbability(int k, double lambda);
 double metropolis_step_sigma_a(double current_sigma_a, const MatrixXd& Z, const MatrixXd& X, 
                                const MatrixXd& A, double sigma_x, double proposal_variance,
                                std::default_random_engine& generator, double a_a, double b_a,
-                               int& accepted_iterations_a);
+                               unsigned K, int& accepted_iterations_a);
 
 
 // Metropolis-Hastings step for sigma_x:
@@ -59,7 +59,7 @@ double metropolis_step_sigma_a(double current_sigma_a, const MatrixXd& Z, const 
 double metropolis_step_sigma_x(double current_sigma_x, const MatrixXd& Z, const MatrixXd& X, 
                                const MatrixXd& A, double sigma_a, double proposal_variance,
                                std::default_random_engine& generator, double a_x, double b_x,
-                               int& accepted_iterations_a);
+                               unsigned K, int& accepted_iterations_a);
 
 
 // Function to sample A matrix
