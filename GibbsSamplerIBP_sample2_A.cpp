@@ -81,6 +81,7 @@ Rcpp::List GibbsSampler_betabernoulli( double alpha, double theta, double sigma_
     for (Eigen::Index it=0;it<n_iter+initial_iters;++it){
 
         n_tilde = A.rows();
+        unsigned K;
         MatrixXd Znew;
 
 
@@ -107,7 +108,7 @@ Rcpp::List GibbsSampler_betabernoulli( double alpha, double theta, double sigma_
             m = fill_m(Znew);
 
             //update the number of observed features:
-            unsigned K = count_nonzero(m);
+            K = count_nonzero(m);
 
             Eigen::Index count = 0;
 
@@ -191,11 +192,12 @@ Rcpp::List GibbsSampler_betabernoulli( double alpha, double theta, double sigma_
                 Z(i, j) = 0;
             }
         }
-        double proposal_variance_factor_sigma_x = 0.1 * sigma_x; // e.g., 10% of current sigma_x
-        double proposal_variance_factor_sigma_a = 0.1 * sigma_a; // e.g., 10% of current sigma_a
+      
+        VectorXd vect=fill_m(Z);
+        K=count_nonzero(vect);
         
         
-        sigma_x = metropolis_step_sigma_x(sigma_x,Z,X,A,sigma_a,proposal_variance_factor_sigma_x,generator,a_x, b_x);
+        sigma_x = metropolis_step_sigma_x(sigma_x,Z,X,A,sigma_a,proposal_variance_factor_sigma_x,generator,a_x, b_x, K);
         //aggiungo anche commento per sigma_a che non c'era, forse qui non serve?
         //sigma_a = metropolis_step_sigma_a(sigma_a,Z,X,A,sigma_x,proposal_variance_factor_sigma_a,generator,a_a, b_a);
 
@@ -212,7 +214,7 @@ Rcpp::List GibbsSampler_betabernoulli( double alpha, double theta, double sigma_
 
         //Per l'IBP utilizzo Eq 14 e 26:
 
-        int K = A.rows();
+       
         int D = A.cols();
 
         Eigen::MatrixXd Zplus = eliminate_null_columns(Z).first;
@@ -261,8 +263,7 @@ Rcpp::List GibbsSampler_betabernoulli( double alpha, double theta, double sigma_
         logPXZ_vector(it)=pXZ_log;
       
         //fill the K_vector
-        VectorXd vect=fill_m(Z);
-        K_vector(it)=count_nonzero(vect);
+        K_vector(it)=K;
       
         sigmaX_vector(it)=sigma_x;
         sigmaA_vector(it)=sigma_a;
