@@ -275,6 +275,11 @@ Rcpp::List GibbsSampler_betabernoulli( double alpha, double theta, double sigma_
         if(it>=initial_iters)
               Ret.push_back(eliminate_null_columns(Z).first);
         }
+    acceptance_probability_x=static_cast<double>(accepted_iterations_x) /(n_iter+initial_iters);
+    acceptance_probability_a=static_cast<double>(accepted_iterations_a) /(n_iter+initial_iters);
+    
     return Rcpp::List::create(Rcpp::Named("Z_list") = Ret, Rcpp::Named("K_vector")=K_vector, Rcpp::Named("logPXZ_vector")=logPXZ_vector, Rcpp::Named("Expected_A") = Expected_A_given_XZ,
-                                          Rcpp::Named("sigmaA_vector")=sigmaA_vector, Rcpp::Named("sigmaX_vector")=sigmaX_vector);
+                                          Rcpp::Named("sigmaA_vector")=sigmaA_vector, Rcpp::Named("sigmaX_vector")=sigmaX_vector,
+                                          Rcpp::Named("acceptance_probability_x")=acceptance_probability_x, 
+                                          Rcpp::Named("acceptance_probability_a")=acceptance_probability_a);
 }
