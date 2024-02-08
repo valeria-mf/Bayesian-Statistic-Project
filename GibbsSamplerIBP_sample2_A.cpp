@@ -63,13 +63,17 @@ Rcpp::List GibbsSampler_betabernoulli( double alpha, double theta, double sigma_
     //create a set to put the generated Z matrices:
     matrix_collection Ret;
     
-    //create a vector to put the K values
+     //create a vector to put the K values
     VectorXd K_vector(n_iter+initial_iters);
     //create a vector to put the log[P(X|Z)]
     VectorXd logPXZ_vector(n_iter+initial_iters);
     VectorXd sigmaA_vector(n_iter+initial_iters);
     VectorXd sigmaX_vector(n_iter+initial_iters);
     Eigen::MatrixXd Expected_A_given_XZ;
+    int accepted_iterations_x=0;
+    int accepted_iterations_a=0;
+    long double acceptance_probability_x;
+    long double acceptance_probability_a;
 
     
 
