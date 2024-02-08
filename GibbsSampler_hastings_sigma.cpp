@@ -231,8 +231,12 @@ Rcpp::List GibbsSampler_betabernoulli( double alpha, double theta, double sigma_
         //FINE calcolo log[P(X|Z)]
         
         logPXZ_vector(it)=pXZ_log;
+
         //fill the K_vector
-        K_vector(it)=K;
+        VectorXd vect=fill_m(Z);
+        K_vector(it)=count_nonzero(vect);
+
+      
         sigmaX_vector(it)=sigma_x;
         sigmaA_vector(it)=sigma_a;
         
