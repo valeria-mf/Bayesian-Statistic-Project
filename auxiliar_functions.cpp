@@ -252,18 +252,19 @@ MatrixXd sample_A(const MatrixXd& Z, const MatrixXd& X, double sigma_x, double s
   unsigned D = X.cols(); // Dimension of data
   
   // Posterior precision and covariance
-  MatrixXd Sigma_posterior_inv = (1.0 / (sigma_x * sigma_x)) * Z.transpose() * Z + (1.0 / (sigma_a * sigma_a)) * MatrixXd::Identity(K, K);
-  Eigen::LLT<MatrixXd> llt(Sigma_posterior_inv); // Cholesky decomposition for numerical stability
-  MatrixXd Sigma_posterior = llt.solve(MatrixXd::Identity(K, K)); // Invert the precision matrix
+  MatrixXd posterior_var_inv = (1 / (sigma_x * sigma_x)) * Z.transpose() * Z + (1 / (sigma_a * sigma_a)) * MatrixXd::Identity(K, K);
+  //Eigen::LLT<MatrixXd> llt(posterior_var_inv); // Cholesky decomposition for numerical stability
+  //MatrixXd posterior_var = llt.solve(MatrixXd::Identity(K, K)); // Invert the precision matrix
+  MatrixXd posterior_var = posterior_var_inv.inverse()
   
   // Posterior mean
-  MatrixXd mu_posterior = Sigma_posterior * (Z.transpose() * X) / (sigma_x * sigma_x);
+  MatrixXd mu_posterior = posterior_var * (Z.transpose() * X) / (sigma_x * sigma_x);
   
   // Sample from the posterior distribution for A
   MatrixXd new_A(K, D);
   for (unsigned k = 0; k < K; ++k) {
     for (unsigned d = 0; d < D; ++d) {
-      std::normal_distribution<double> dist(mu_posterior(k, d), sqrt(Sigma_posterior(k, k)));
+      std::normal_distribution<double> dist(mu_posterior(k, d), sqrt(posterior_var(k, k)));
       new_A(k, d) = dist(generator);
     }
   }
