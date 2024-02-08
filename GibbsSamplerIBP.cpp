@@ -241,7 +241,7 @@ Rcpp::List GibbsSampler_IBP(const double alpha,const double gamma,const double s
           
         if(it>=initial_iters){
 
-             Ret.push_back(Z);
+             Ret.push_back(Zplus);
         }
 
     }
