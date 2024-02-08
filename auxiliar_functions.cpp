@@ -83,7 +83,7 @@ long double calculate_likelihood(const MatrixXd& Z, const MatrixXd& X, const Mat
 
 long double calculate_log_likelihood(const MatrixXd& Z, const MatrixXd& X, 
                                      const MatrixXd& M, double sigma_x, 
-                                     double sigma_a, int n_tilde, unsigned D, int n) {
+                                     double sigma_a, unsigned K, unsigned D, int n) {
   
   // Compute determinant part
   long double log_det_part = 0.5 * D * log(abs(sigma_x*sigma_x*M).determinant());
@@ -92,7 +92,7 @@ long double calculate_log_likelihood(const MatrixXd& Z, const MatrixXd& X,
   MatrixXd mat = X.transpose() * (Eigen::MatrixXd::Identity(n, n) - (Z * M * Z.transpose())) * X;
   long double trace_part = -0.5 / (sigma_x * sigma_x) * mat.trace();
   
-  long double den_part = n*D/2*log(2*M_PI)+n*D*log(sigma_x)+n_tilde*D*log(sigma_a);
+  long double den_part = n*D/2*log(2*M_PI)+n*D*log(sigma_x)+K*D*log(sigma_a);
   
   return log_det_part + trace_part - den_part;
 }
@@ -172,7 +172,7 @@ double compute_cardinality(Eigen::MatrixXd Z) {
 // Funzione per eseguire un passo di Metropolis-Hastings per sigma_x con una prior Inverse Gamma e una proposta lognormale
 double metropolis_step_sigma_x(double current_sigma_x, const MatrixXd& Z, const MatrixXd& X, 
                                const MatrixXd& A, double sigma_a, double proposal_variance,
-                               std::default_random_engine& generator, double a_x, double b_x, int& accepted_iterations_x) {
+                               std::default_random_engine& generator, double a_x, double b_x, unsigned K, int& accepted_iterations_x) {
   // Trasforma current_sigma_x in eta_x (scala logaritmica)
   double current_eta_x = log(current_sigma_x);
   
@@ -183,10 +183,10 @@ double metropolis_step_sigma_x(double current_sigma_x, const MatrixXd& Z, const 
   
   // Calcola la log-verosimiglianza per sigma_x corrente e proposto
   MatrixXd M_current = (Z.transpose() * Z + MatrixXd::Identity(Z.cols(), Z.cols()) * pow(current_sigma_x/sigma_a, 2)).inverse();
-  double current_log_likelihood = calculate_log_likelihood(Z, X, M_current, current_sigma_x,sigma_a, Z.cols(), A.cols(), Z.rows());
+  double current_log_likelihood = calculate_log_likelihood(Z, X, M_current, current_sigma_x,sigma_a, K, A.cols(), Z.rows());
   
   MatrixXd M_new = (Z.transpose() * Z + MatrixXd::Identity(Z.cols(), Z.cols()) * pow(new_sigma_x/sigma_a, 2)).inverse();
-  double new_log_likelihood = calculate_log_likelihood(Z, X, M_new, new_sigma_x, sigma_a, Z.cols(), A.cols(), Z.rows());
+  double new_log_likelihood = calculate_log_likelihood(Z, X, M_new, new_sigma_x, sigma_a, K, A.cols(), Z.rows());
   
   // Calcola il log-prior per sigma_x corrente e proposto sotto la distribuzione Inverse Gamma
   double current_log_prior = (a_x * log(b_x) - lgamma(a_x) - (a_x + 1) * log(current_sigma_x) - b_x / current_sigma_x);
@@ -208,7 +208,7 @@ double metropolis_step_sigma_x(double current_sigma_x, const MatrixXd& Z, const 
 // Funzione per eseguire un passo di Metropolis-Hastings per sigma_a con una prior Inverse Gamma e una proposta lognormale
 double metropolis_step_sigma_a(double current_sigma_a, const MatrixXd& Z, const MatrixXd& X, 
                                const MatrixXd& A, double sigma_x, double proposal_variance,
-                               std::default_random_engine& generator, double a_a, double b_a, int& accepted_iterations_a) {
+                               std::default_random_engine& generator, double a_a, double b_a, unsigned K, int& accepted_iterations_a) {
   // Trasforma current_sigma_a in eta_a (scala logaritmica)
   double current_eta_a = log(current_sigma_a);
   
@@ -219,10 +219,10 @@ double metropolis_step_sigma_a(double current_sigma_a, const MatrixXd& Z, const 
   
   // Calcola la log-verosimiglianza per sigma_a corrente e proposto
   MatrixXd M_current = (Z.transpose() * Z + MatrixXd::Identity(Z.cols(), Z.cols()) * pow(sigma_x/current_sigma_a, 2)).inverse();
-  double current_log_likelihood = calculate_log_likelihood(Z, X, M_current, sigma_x, current_sigma_a, Z.cols(), A.cols(), Z.rows());
+  double current_log_likelihood = calculate_log_likelihood(Z, X, M_current, sigma_x, current_sigma_a, K, A.cols(), Z.rows());
   
   MatrixXd M_new = (Z.transpose() * Z + MatrixXd::Identity(Z.cols(), Z.cols()) * pow(sigma_x/new_sigma_a, 2)).inverse();
-  double new_log_likelihood = calculate_log_likelihood(Z, X, M_new, sigma_x, new_sigma_a, Z.cols(), A.cols(), Z.rows());
+  double new_log_likelihood = calculate_log_likelihood(Z, X, M_new, sigma_x, new_sigma_a, K, A.cols(), Z.rows());
   
   // Calcola il log-prior per sigma_a corrente e proposto sotto la distribuzione Inverse Gamma
   double current_log_prior = (a_a * log(b_a) - lgamma(a_a) - (a_a + 1) * log(current_sigma_a) - b_a / current_sigma_a);
