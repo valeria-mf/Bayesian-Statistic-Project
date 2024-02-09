@@ -47,8 +47,7 @@ Rcpp::List GibbsSampler_betabernoulli( double alpha, double theta, double sigma_
   //  std::cout << Z << std::endl;
 
  //Initialization of A:
-  int n_tilde = 1;
-  MatrixXd A = Eigen::MatrixXd::Zero(n_tilde, D);
+  MatrixXd A = Eigen::MatrixXd::Zero(1, D);
   std::normal_distribution<double> A_initializer(0,1);
   for(unsigned j=0;j<D;++j)
       A(0, j) = A_initializer(generator);
@@ -111,7 +110,7 @@ Rcpp::List GibbsSampler_betabernoulli( double alpha, double theta, double sigma_
             m = fill_m(Znew);
 
             //update the number of observed features:
-            //K = count_nonzero(m);
+            K = count_nonzero(m);
 
             Eigen::Index count = 0;
 
