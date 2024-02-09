@@ -67,7 +67,7 @@ Eigen::MatrixXd update_M(const MatrixXd& M, const VectorXd& z_i) {
 }
 
 
-long double calculate_likelihood(const MatrixXd& Z, const MatrixXd& X, const MatrixXd& M, double sigma_x,double sigma_a,int K,unsigned D,int n) {
+long double calculate_likelihood(const MatrixXd& Z, const MatrixXd& X, const MatrixXd& M, double sigma_x,double sigma_a,unsigned K,unsigned D,int n) {
   // Assuming a diagonal covariance matrix sigma_X^2 * I for the Gaussian likelihood
   Eigen::MatrixXd Zt=Z.transpose();
     Eigen::MatrixXd Xt=X.transpose();
