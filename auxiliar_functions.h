@@ -32,7 +32,7 @@ std::pair<Eigen::MatrixXd, Eigen::VectorXd> eliminate_null_columns(Eigen::Matrix
 Eigen::MatrixXd update_M(const MatrixXd& M, const VectorXd& z_i);
 
 // Function to calculate the likelihood of the data X given the latent feature matrix Z
-long double calculate_likelihood(const MatrixXd& Z, const MatrixXd& X, const MatrixXd& M, double sigma_x,double sigma_a,int n_tilde,unsigned D,int n);
+long double calculate_likelihood(const MatrixXd& Z, const MatrixXd& X, const MatrixXd& M, double sigma_x,double sigma_a,int K,unsigned D,int n);
 
 // Function to calculate the log-likelihood of the data X given the latent feature matrix Z
 //we need it for numerical stability reasons
