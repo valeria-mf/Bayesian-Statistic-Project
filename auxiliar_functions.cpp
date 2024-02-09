@@ -74,7 +74,7 @@ long double calculate_likelihood(const MatrixXd& Z, const MatrixXd& X, const Mat
     //Eigen::MatrixXd I_K=Eigen::MatrixXd::Identity(K,K);
     Eigen::MatrixXd I_n=Eigen::MatrixXd::Identity(n,n);
     long double trace=(Xt *(I_n-(Z * M * Zt ))*X).trace();
-    long double det=abs((M*sigma_x*sigma_x)).determinant();
+    long double det=abs((M*sigma_x*sigma_x).determinant());
     long double den = pow(2*M_PI,n*D/2)*pow(sigma_x,n*D)*pow(sigma_a,K*D);
     return pow(det,D/2)/den*exp(trace*(-1 / (2 * sigma_x * sigma_x)));
 
@@ -86,7 +86,7 @@ long double calculate_log_likelihood(const MatrixXd& Z, const MatrixXd& X,
                                      double sigma_a, unsigned K, unsigned D, int n) {
   
   // Compute determinant part
-  long double log_det_part = 0.5 * D * log(abs(sigma_x*sigma_x*M).determinant());
+  long double log_det_part = 0.5 * D * log(abs((sigma_x*sigma_x*M).determinant()));
   
   // Compute trace part
   MatrixXd mat = X.transpose() * (Eigen::MatrixXd::Identity(n, n) - (Z * M * Z.transpose())) * X;

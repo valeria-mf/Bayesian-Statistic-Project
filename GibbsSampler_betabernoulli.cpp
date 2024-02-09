@@ -170,6 +170,8 @@ Rcpp::List GibbsSampler_betabernoulli( double alpha, double theta, double sigma_
                     }
                 }
         }
+        VectorXd vect=fill_m(Z);
+        K=count_nonzero(vect);
 
 
 
@@ -179,7 +181,6 @@ Rcpp::List GibbsSampler_betabernoulli( double alpha, double theta, double sigma_
 
         //Per il BB utilizzo Eq 21 e 12:
 
-        int K = A.rows();
         int D = A.cols();
 
         // Eq 21 dopo averla messa nel logaritmo:
@@ -221,8 +222,7 @@ Rcpp::List GibbsSampler_betabernoulli( double alpha, double theta, double sigma_
         logPXZ_vector(it)=pXZ_log;
         
         //fill the K_vector
-        VectorXd vect=fill_m(Z);
-        K_vector(it)=count_nonzero(vect);
+        K_vector(it)=K;
 
 
 
