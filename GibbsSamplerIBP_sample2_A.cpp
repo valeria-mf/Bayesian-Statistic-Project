@@ -84,8 +84,8 @@ Rcpp::List GibbsSampler_betabernoulli( double alpha, double theta, double sigma_
   
     for (Eigen::Index it=0;it<n_iter+initial_iters;++it){
 
-        n_tilde = A.rows();
-        unsigned K;
+        int K = A.rows();
+        //unsigned K;
         MatrixXd Znew;
 
 
@@ -126,7 +126,7 @@ Rcpp::List GibbsSampler_betabernoulli( double alpha, double theta, double sigma_
                 Z(i, count) = 1;
                 M = update_M(M, Z.row(i));
 
-                long double prob_xz= calculate_likelihood(Z,X,M,sigma_x,sigma_a,n_tilde,D,n);
+                long double prob_xz= calculate_likelihood(Z,X,M,sigma_x,sigma_a,K,D,n);
 
 
 
@@ -134,7 +134,7 @@ Rcpp::List GibbsSampler_betabernoulli( double alpha, double theta, double sigma_
                 Z(i, count) = 0;
                 M = update_M(M, Z.row(i));
                 
-                long double prob_xz0 = calculate_likelihood(Z,X,M,sigma_x,sigma_a,n_tilde,D,n);
+                long double prob_xz0 = calculate_likelihood(Z,X,M,sigma_x,sigma_a,K,D,n);
 
 
                 //Bernoulli parameter:
