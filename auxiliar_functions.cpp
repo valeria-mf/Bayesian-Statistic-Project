@@ -304,7 +304,7 @@ MatrixXd sample2_A(const MatrixXd& Z, const MatrixXd& X, MatrixXd A, double &sig
   MatrixXd new_A(K, D);  
   for(unsigned k=0; k<K; ++k) {
     for(unsigned d=0; d<D; ++d) {
-      std::normal_distribution<double> distr(mu_posterior(d), sigma_a);
+      std::normal_distribution<double> distr(mu_posterior(d), std::pow(sigma_a,2));
       new_A(k,d) = distr(generator); // sampling dei valori di A elemento per elemento    
     }
   }  
