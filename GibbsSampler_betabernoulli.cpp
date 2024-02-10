@@ -97,22 +97,24 @@ Rcpp::List GibbsSampler_betabernoulli( double alpha, double theta, double sigma_
                 Z(i, count) = 1;
                 M = update_M(M, Z.row(i));
 
-                long double prob_xz= calculate_likelihood(Z,X,M,sigma_x,sigma_a,K,D,n);
+              
+                long double prob_xz = calculate_log_likelihood(Z,X,M,sigma_x,sigma_a,K,D,n);
 
-
-
-                //P(X|Z) when z_ij=1:
+                //P(X|Z) when z_ij=0:
                 Z(i, count) = 0;
                 M = update_M(M, Z.row(i));
-                
-                long double prob_xz0 = calculate_likelihood(Z,X,M,sigma_x,sigma_a,K,D,n);
+                long double prob_xz0 = calculate_log_likelihood(Z,X,M,sigma_x,sigma_a,n_tilde,D,n);
+                Eigen::VectorX<long double> temp_vec(2);
+                temp_vec(0)=prob_xz+ log(prob_zz);
+                temp_vec(1)=prob_xz0+ log(1-prob_zz);
+                long double maximum=find_max(temp_vec);
+                prob_xz=prob_xz-maximum;
+                prob_xz0=prob_xz0-maximum;
+                prob_xz=exp(prob_xz);
+                prob_xz0=exp(prob_xz0);
 
+                long double prob_param=prob_xz/(prob_xz+prob_xz0);
 
-                //Bernoulli parameter:
-
-                long double prob_one_temp = prob_zz * prob_xz;
-                long double prob_zero_temp = (1 - prob_zz) * prob_xz0;
-                long double prob_param = prob_one_temp / (prob_one_temp + prob_zero_temp); //PROBLEM: always too small
 
                 //sample from Bernoulli distribution:
                 std::bernoulli_distribution distribution_bern(prob_param);
@@ -144,14 +146,20 @@ Rcpp::List GibbsSampler_betabernoulli( double alpha, double theta, double sigma_
 
                     Eigen::VectorXd prob_new(n_res);
                     for (unsigned itt = 0; itt < n_res; ++itt) {
-                        double bin_prob = binomialProbability(n_res, prob, itt);
-                        Z(i, j + itt) = 1;
+                        long double bin_prob = binomialProbability(n_res, prob, itt);
+    
+                        Z(i, Znew.cols() + itt) = 1;
                         M = update_M(M, Z.row(i));
-                        
-                        long double p_xz = calculate_likelihood(Z,X,M,sigma_x,sigma_a,K+n_res,D,n);
-                        prob_new(itt) = bin_prob * p_xz;
+                        long double px_znewfeat= calculate_log_likelihood(Z,X,M,sigma_x,sigma_a,K+itt,D,n);
+                        prob_new(itt) = bin_prob + log (px_znewfeat);
+    
                     }
                     // Normalize posterior probabilities
+                    long double max2=find_max(prob_new);
+                    for (unsigned ii=0; ii<prob_new.size();++ii){
+                        prob_new(ii)=prob_new(ii)-max2;
+                        prob_new(ii)=exp(prob_new(ii));
+                    }
                     double sum_posterior = prob_new.sum();
                     for (unsigned l = 0; l < prob_new.size(); ++l) {
                         prob_new(l) /= sum_posterior;
