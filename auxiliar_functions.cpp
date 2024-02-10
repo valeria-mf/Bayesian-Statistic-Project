@@ -310,3 +310,12 @@ MatrixXd sample2_A(const MatrixXd& Z, const MatrixXd& X, MatrixXd A, double &sig
   }  
   return new_A;
 }
+
+
+long double find_max(Eigen::VectorX<long double> &v){
+    long double max=v(0);
+    for (unsigned i=1; i< v.size(); ++i)
+        if (v(i) > max)
+            max=v(i);
+    return max;
+}
