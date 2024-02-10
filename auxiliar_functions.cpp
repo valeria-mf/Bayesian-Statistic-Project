@@ -314,7 +314,7 @@ MatrixXd sample2_A(const MatrixXd& Z, const MatrixXd& X, MatrixXd A, double &sig
   a_mean = a_mean/(K*D);
   Eigen::VectorXd mu_posterior(K);  
   mu_mean = K*a_mean/(K+1);
-  mu_var = mu_var/(K+1);
+  mu_var = mu_var/(D*(K+1));
   for(unsigned k=0; k<K; ++k) {
     std::normal_distribution<double> distr(mu_mean, mu_var);
     mu_posterior(k) = distr(generator);
