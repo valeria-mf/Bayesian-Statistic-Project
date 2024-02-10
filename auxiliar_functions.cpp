@@ -283,6 +283,17 @@ MatrixXd sample2_A(const MatrixXd& Z, const MatrixXd& X, MatrixXd A, double &sig
   
   // Posterior precision and variance
   a = a + 0.5*K*D; // update a
+
+  for(i=0;i<K;i++) {
+      for(j=0;j<D;j++) {
+          sum1 = sum1 + A[i,j];
+      }
+  }
+
+  for(j=0;j<D;j++) {
+      
+  }
+    
   b = b + 0.5*(A.transpose()*A).trace(); // update b
   std::gamma_distribution<double> distr(a, b);  
   double precision = pow(distr(generator),-1); // sto facendo sampling da una gamma
