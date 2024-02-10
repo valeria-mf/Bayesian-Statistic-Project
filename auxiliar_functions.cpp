@@ -275,16 +275,29 @@ MatrixXd sample_A(const MatrixXd& Z, const MatrixXd& X, double sigma_x, double s
 
 // Function to sample A matrix with new prior (4.2)
 // (a,b): parameters of sigma_a  /  c: constant in the variance of mu_a
-MatrixXd sample2_A(const MatrixXd& Z, const MatrixXd& X, MatrixXd A, double &sigma_a, double &a, double &b, double &mu_mean, double &mu_var, std::default_random_engine& generator) {
+MatrixXd sample2_A(const MatrixXd& Z, const MatrixXd& X, MatrixXd A, double &sigma2_a, double &a, double &b, double &mu_mean, double &mu_var, std::default_random_engine& generator) {
   unsigned K = Z.cols(); // Number of features  
   unsigned D = X.cols(); // Dimension of data
   
   // Posterior precision and variance
-  a = a + 0.5*K*D; // update a
-  b = b + 0.5*(A.transpose()*A).trace(); // update b
+  a = a + K*D/2 + D/2; // update a
+  double sum1 = 0
+  double sum2 = 0
+    
+  for(i=0; i<K; i++) {
+      for(j=0; j<D; j++) {
+          sum1 = sum1 + std::pow((A[i][j] - mu_A[j]), 2);
+      }
+  }
+
+  for(j=0; j<D; j++) {
+      sum2 = sum2 + std::pow((mu_A[j] - mu_mean), 2);
+  }
+      
+  b = b + 0.5*(sum1 + sum2/c); // update b AGGIUNGI C
   std::gamma_distribution<double> distr(a, b);  
   double precision = pow(distr(generator),-1); // sto facendo sampling da una gamma
-  sigma_a = 1/precision; // this is sigma_A^2, the variance, not the standard deviation
+  sigma2_a = 1/precision; //
   
   // Posterior mean 
   double a_mean = 0;
@@ -304,7 +317,7 @@ MatrixXd sample2_A(const MatrixXd& Z, const MatrixXd& X, MatrixXd A, double &sig
   MatrixXd new_A(K, D);  
   for(unsigned k=0; k<K; ++k) {
     for(unsigned d=0; d<D; ++d) {
-      std::normal_distribution<double> distr(mu_posterior(d), sigma_a);
+      std::normal_distribution<double> distr(mu_posterior(d), sigma2_a);
       new_A(k,d) = distr(generator); // sampling dei valori di A elemento per elemento    
     }
   }  
