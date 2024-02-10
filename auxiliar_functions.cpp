@@ -290,11 +290,17 @@ MatrixXd sample2_A(const MatrixXd& Z, const MatrixXd& X, MatrixXd A, double &sig
       }
   }
 
+  double row_mean;
   for(j=0;j<D;j++) {
-      
+      row_mean = 0;
+      for(i=0;i<K;i++) {
+          row_mean = row_mean + A[i,j];
+      }
+      row_mean = row_mean/K;
+      sum2 = sum2 + std::pow(row_mean, 2);
   }
     
-  b = b + 0.5*(A.transpose()*A).trace(); // update b
+  b = b + 0.5*(sum1 + std::pow(K,2)*sum2/(2*(K+1))); // update b
   std::gamma_distribution<double> distr(a, b);  
   double precision = pow(distr(generator),-1); // sto facendo sampling da una gamma
   sigma_a = std::pow(1/precision, 0.5);
