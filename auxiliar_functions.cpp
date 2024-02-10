@@ -286,7 +286,7 @@ MatrixXd sample2_A(const MatrixXd& Z, const MatrixXd& X, MatrixXd A, double &sig
 
   for(i=0;i<K;i++) {
       for(j=0;j<D;j++) {
-          sum1 = sum1 + A[i,j];
+          sum1 = sum1 + std::pow(A[i,j],2);
       }
   }
 
