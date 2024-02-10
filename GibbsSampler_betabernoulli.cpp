@@ -84,6 +84,8 @@ Rcpp::List GibbsSampler_betabernoulli( double alpha, double theta, double sigma_
 
             //update the number of observed features:
             K = m.size();
+            std::cout << K << std::endl;
+            
 
             Eigen::Index count = 0;
 
@@ -104,7 +106,7 @@ Rcpp::List GibbsSampler_betabernoulli( double alpha, double theta, double sigma_
                 Z(i, count) = 0;
                 M = update_M(M, Z.row(i));
                 long double prob_xz0 = calculate_log_likelihood(Z,X,M,sigma_x,sigma_a,n_tilde,D,n);
-                Eigen::VectorX<long double> temp_vec(2);
+                Eigen::VectorXd temp_vec(2);
                 temp_vec(0)=prob_xz+ log(prob_zz);
                 temp_vec(1)=prob_xz0+ log(1-prob_zz);
                 long double maximum=find_max(temp_vec);
@@ -114,6 +116,8 @@ Rcpp::List GibbsSampler_betabernoulli( double alpha, double theta, double sigma_
                 prob_xz0=exp(prob_xz0);
 
                 long double prob_param=prob_xz/(prob_xz+prob_xz0);
+                
+                std::cout <<"Prob_param:"<< prob_param << std::endl;
 
 
                 //sample from Bernoulli distribution:
@@ -160,10 +164,14 @@ Rcpp::List GibbsSampler_betabernoulli( double alpha, double theta, double sigma_
                         prob_new(ii)=prob_new(ii)-max2;
                         prob_new(ii)=exp(prob_new(ii));
                     }
+                    std::cout << "Prob_new:" << std::endl;
                     double sum_posterior = prob_new.sum();
                     for (unsigned l = 0; l < prob_new.size(); ++l) {
                         prob_new(l) /= sum_posterior;
+                        std::cout << prob_new(l) << std::endl;
                     }
+                    
+                    
 
                     // Sample the number of new features based on posterior probabilities
                     //std::discrete_distribution<int> distribution(prob_new.begin(), prob_new.end());

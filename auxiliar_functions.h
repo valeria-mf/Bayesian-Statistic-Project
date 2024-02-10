@@ -71,6 +71,6 @@ MatrixXd sample2_A(const MatrixXd& Z, const MatrixXd& X, MatrixXd A, double &sig
 // Required for the computation of log[P(X,Z)]
 double compute_cardinality(const Eigen::MatrixXd Z);
 
-long double find_max(Eigen::VectorX<long double> &v);
+long double find_max(VectorXd &v);
 
 #endif //AUXILIAR_FUNCTIONS_H

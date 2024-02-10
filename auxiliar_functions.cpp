@@ -280,24 +280,11 @@ MatrixXd sample2_A(const MatrixXd& Z, const MatrixXd& X, MatrixXd A, double &sig
   unsigned D = X.cols(); // Dimension of data
   
   // Posterior precision and variance
-  a = a + K*D/2 + D/2; // update a
-  double sum1 = 0
-  double sum2 = 0
-    
-  for(i=0; i<K; i++) {
-      for(j=0; j<D; j++) {
-          sum1 = sum1 + std::pow((A[i][j] - mu_A[j]), 2);
-      }
-  }
-
-  for(j=0; j<D; j++) {
-      sum2 = sum2 + std::pow((mu_A[j] - mu_mean), 2);
-  }
-      
-  b = b + 0.5*(sum1 + sum2/c); // update b AGGIUNGI C
+  a = a + 0.5*K*D; // update a
+  b = b + 0.5*(A.transpose()*A).trace(); // update b
   std::gamma_distribution<double> distr(a, b);  
   double precision = pow(distr(generator),-1); // sto facendo sampling da una gamma
-  sigma_a = sqrt(1/precision); //
+  sigma_a = 1/precision; // this is sigma_A^2, the variance, not the standard deviation
   
   // Posterior mean 
   double a_mean = 0;
@@ -317,7 +304,7 @@ MatrixXd sample2_A(const MatrixXd& Z, const MatrixXd& X, MatrixXd A, double &sig
   MatrixXd new_A(K, D);  
   for(unsigned k=0; k<K; ++k) {
     for(unsigned d=0; d<D; ++d) {
-      std::normal_distribution<double> distr(mu_posterior(d), std::pow(sigma_a,2));
+      std::normal_distribution<double> distr(mu_posterior(d), sigma_a);
       new_A(k,d) = distr(generator); // sampling dei valori di A elemento per elemento    
     }
   }  
@@ -325,7 +312,7 @@ MatrixXd sample2_A(const MatrixXd& Z, const MatrixXd& X, MatrixXd A, double &sig
 }
 
 
-long double find_max(Eigen::VectorX<long double> &v){
+long double find_max(VectorXd &v){
     long double max=v(0);
     for (unsigned i=1; i< v.size(); ++i)
         if (v(i) > max)
