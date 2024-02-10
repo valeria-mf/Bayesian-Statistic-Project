@@ -284,7 +284,7 @@ MatrixXd sample2_A(const MatrixXd& Z, const MatrixXd& X, MatrixXd A, double &sig
   b = b + 0.5*(A.transpose()*A).trace(); // update b
   std::gamma_distribution<double> distr(a, b);  
   double precision = pow(distr(generator),-1); // sto facendo sampling da una gamma
-  sigma_a = sqrt(1/precision); // this is sigma_A^2, the variance, not the standard deviation
+  sigma_a = std::pow(1/precision, 0.5);
   
   // Posterior mean 
   double a_mean = 0;
