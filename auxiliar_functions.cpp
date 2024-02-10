@@ -309,11 +309,12 @@ MatrixXd sample2_A(const MatrixXd& Z, const MatrixXd& X, MatrixXd A, double &sig
   double a_mean = 0;
   for(unsigned cont=0; cont<K; cont++){
     for(unsigned contt=0; contt<D; contt++)
-      a_mean += A(cont,contt)/(K*D);
+      a_mean += A(cont,contt);
   }
+  a_mean = a_mean/(K*D);
   Eigen::VectorXd mu_posterior(K);  
-  mu_mean = K*a_mean/(K-1);
-  mu_var = mu_var/((K-1)*D);
+  mu_mean = K*a_mean/(K+1);
+  mu_var = mu_var/(K+1);
   for(unsigned k=0; k<K; ++k) {
     std::normal_distribution<double> distr(mu_mean, mu_var);
     mu_posterior(k) = distr(generator);
