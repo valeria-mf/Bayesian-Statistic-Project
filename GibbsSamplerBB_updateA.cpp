@@ -142,7 +142,7 @@ Rcpp::List GibbsSampler_betabernoulli( double alpha, double theta, double sigma_
             }
 
                 unsigned n_res = n_tilde - K;
-                std::cout << n_res << std::endl; // c
+                std::cout << "Questo print a riga 145 serve per vedere se n_res rimane a zero: " << n_res << std::endl; // c
                 if (n_res > 0) {
                     //sample the number of new features:
 
@@ -179,6 +179,7 @@ Rcpp::List GibbsSampler_betabernoulli( double alpha, double theta, double sigma_
                     //std::discrete_distribution<int> distribution(prob_new.begin(), prob_new.end());
                     std::discrete_distribution<int> distribution(prob_new.data(), prob_new.data() + prob_new.size());
                     int new_feat = distribution(generator);
+                    std::cout << "Questo print alla riga 182 serve per vedere se new_feat rimane zero: " << new_feat << std::endl;
 
 
                     //update Z-part2:
@@ -199,7 +200,7 @@ Rcpp::List GibbsSampler_betabernoulli( double alpha, double theta, double sigma_
 
       
 
-        A= sample_A(Z, X, sigma_x, sigma_a, generator);
+        A = sample_A(Z, X, sigma_x, sigma_a, generator);
 
 
 
