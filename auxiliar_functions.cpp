@@ -77,8 +77,6 @@ long double calculate_likelihood(const MatrixXd& Z, const MatrixXd& X, const Mat
     long double det=abs((M*sigma_x*sigma_x).determinant());
     long double den = pow(2*M_PI,n*D/2)*pow(sigma_x,n*D)*pow(sigma_a,K*D);
     return pow(det,D/2)/den*exp(trace*(-1 / (2 * sigma_x * sigma_x)));
-
-
 }
 
 long double calculate_log_likelihood(const MatrixXd& Z, const MatrixXd& X, 
