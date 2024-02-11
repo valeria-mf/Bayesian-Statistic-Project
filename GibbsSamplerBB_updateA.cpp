@@ -142,7 +142,7 @@ Rcpp::List GibbsSampler_betabernoulli( double alpha, double theta, double sigma_
             }
 
                 unsigned n_res = n_tilde - K;
-                std::cout << n_res << std::endl;
+                std::cout << n_res << std::endl; // c
                 if (n_res > 0) {
                     //sample the number of new features:
 
