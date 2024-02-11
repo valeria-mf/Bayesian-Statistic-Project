@@ -27,10 +27,9 @@ Rcpp::List GibbsSampler_betabernoulli( double alpha, double theta, double sigma_
     Eigen::Map<Eigen::MatrixXd> X(Rcpp::as<Eigen::Map<Eigen::MatrixXd>>(mat_X));
 
   
-    // Initialization of Z and m:
+    // Initialization of Z
     MatrixXd Z = Eigen::MatrixXd::Zero(n, n_tilde);
-    VectorXd m(n_tilde);
-    
+   
     std::default_random_engine generator;
 
     std::bernoulli_distribution Z_initializer(0.5);
@@ -80,7 +79,7 @@ Rcpp::List GibbsSampler_betabernoulli( double alpha, double theta, double sigma_
             positions = matvec.second; //to see the positions where I remove the columns
 
             Z.row(i) = z_i;
-            m = fill_m(Znew);
+            Eigen:VectorXd m = fill_m(Znew);
 
             //update the number of observed features:
             K = m.size();
