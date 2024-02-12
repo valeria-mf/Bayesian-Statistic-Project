@@ -248,13 +248,15 @@ Rcpp::List GibbsSampler_betabernoulli( double alpha, double theta, double sigma_
         long double eq_12_log_fraction = compute_cardinality(Z);
 
         Eigen::VectorXd mm = fill_m(Z);
+        std::cout << "mm (fill_m(Z)): " << mm << std::endl;
         long double eq_12_log_product = 0;
         for (size_t k = 0; k < K; k++) {
             eq_12_log_product += log(-alpha / K) + log(tgamma(mm(k) + alpha / K)) + log(tgamma(n - mm(k) + 1)) - log(tgamma(n + 1 + alpha / K));
         }
         long double eq_12_log = eq_12_log_fraction + eq_12_log_product; // A volte ritorna valori positivi: questo implica che P(Z)>1 che è impossibile.
                                                                         // CALCOLI DA RIVEDERE
-
+        std::cout << "eq_12_log: " << eq_12_log << std::endl;
+        
         // Rcpp::Rcout << "eq_12_log = eq_12_log_fraction + eq_12_log_product = " << eq_12_log_fraction << " + " << eq_12_log_product << " = " << eq_12_log << endl;
 
         // log[P(X,Z)] = log[P(X|Z)P(Z)] = log[P(X|Z)] + log[P(Z)]       (log(Equation 21) + log(Equation 12))
@@ -263,11 +265,13 @@ Rcpp::List GibbsSampler_betabernoulli( double alpha, double theta, double sigma_
         // Rcpp::Rcout << "pXZ_log = eq_12_log + eq_21_log = " <<  eq_12_log << " + " << eq_21_log << " = " << pXZ_log << std::endl;
         
         Expected_A_given_XZ = (Z.transpose()*Z+pow(sigma_x/sigma_a,2)*Eigen::MatrixXd::Identity(Z.cols(), Z.cols())).inverse()*Z.transpose()*X;
+        std::cout << "Expected_A_given_XZ: " << Expected_A_given_XZ << std::endl;
         
         //----------------------------------------------------------------------
         //FINE calcolo log[P(X|Z)]
         
         logPXZ_vector(it)=pXZ_log;
+        std::cout << "logPXZ_vector: " << logPXZ_vector << std::endl;
         
         //fill the K_vector
         K_vector(it)=K;
