@@ -56,6 +56,7 @@ Rcpp::List GibbsSampler_betabernoulli( double alpha, double theta, double sigma_
 
 
     for (Eigen::Index it=0;it<n_iter+initial_iters;++it){
+        std::cout << "\nInizio iterazione " << it << std::endl;
 
         unsigned K;
 
@@ -63,11 +64,13 @@ Rcpp::List GibbsSampler_betabernoulli( double alpha, double theta, double sigma_
 
         //INITIALIZE M MATRIX:
         MatrixXd M=(Z.transpose()*Z -  Eigen::MatrixXd::Identity(n_tilde,n_tilde)*pow(sigma_x/sigma_a,2)).inverse();
+        std::cout << "Print di M: " << M << std::endl;
 
 
         for (Eigen::Index i=0; i<n;++i) {
 
             Eigen::VectorXd z_i = Z.row(i);
+            std::cout << "Print della riga " << i+1 << " di Z: " << z_i << std::endl;
 
 
             Z.row(i).setZero();
@@ -75,6 +78,7 @@ Rcpp::List GibbsSampler_betabernoulli( double alpha, double theta, double sigma_
             VectorXd positions;
             auto matvec = std::make_pair(Znew, positions);
             matvec = eliminate_null_columns(Z);
+            
             Znew = matvec.first; //the new matrix that I will update
             positions = matvec.second; //to see the positions where I remove the columns
 
