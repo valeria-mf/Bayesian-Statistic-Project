@@ -80,14 +80,17 @@ Rcpp::List GibbsSampler_betabernoulli( double alpha, double theta, double sigma_
             matvec = eliminate_null_columns(Z);
             
             Znew = matvec.first; //the new matrix that I will update
+            std::cout << "Print di Znew: " << Znew << std::endl;
             positions = matvec.second; //to see the positions where I remove the columns
+            std::cout << "Print delle posizioni delle colonne non nulle: " << positions << std::endl;
 
             Z.row(i) = z_i;
             Eigen:VectorXd m = fill_m(Znew);
+            std::cout << "Print del vettore che ha al posto i la somma dei valori sulla colonna i di Znew: " << m << std::endl;
 
             //update the number of observed features:
             K = m.size();
-            std::cout << K << std::endl;
+            std::cout << "Print di K: " << K << std::endl;
             
 
             Eigen::Index count = 0;
@@ -97,18 +100,22 @@ Rcpp::List GibbsSampler_betabernoulli( double alpha, double theta, double sigma_
                     ++count;
 
                 double prob_zz = (m(j) - alpha) / (theta + (n - 1));
+                std::cout << "Print di prob_zz: " << prob_zz << std::endl;
 
                 //P(X|Z) when z_ij=1:
                 Z(i, count) = 1;
                 M = update_M(M, Z.row(i));
-
-              
+                std::cout << "Update di M quando z_" << i << count << " vale 1: " << M << std::endl;
                 long double prob_xz = calculate_log_likelihood(Z,X,M,sigma_x,sigma_a,K,D,n);
+                std::cout << "Print di prob_xz, log_likelihood per z=1: " << prob_xz << std::endl;
 
                 //P(X|Z) when z_ij=0:
                 Z(i, count) = 0;
                 M = update_M(M, Z.row(i));
+                std::cout << "Update di M quando z_" << i << count << " vale 0: " << M << std::endl;
                 long double prob_xz0 = calculate_log_likelihood(Z,X,M,sigma_x,sigma_a,n_tilde,D,n);
+                std::cout << "Print di prob_xz, log_likelihood per z=0: " << prob_xz << std::endl;
+                
                 Eigen::VectorXd temp_vec(2);
                 temp_vec(0)=prob_xz+ log(prob_zz);
                 temp_vec(1)=prob_xz0+ log(1-prob_zz);
