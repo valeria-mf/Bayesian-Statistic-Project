@@ -109,12 +109,12 @@ Rcpp::List GibbsSampler_betabernoulli( double alpha, double theta, double sigma_
                 temp_vec(0)=prob_xz+ log(prob_zz);
                 temp_vec(1)=prob_xz0+ log(1-prob_zz);
                 long double maximum=find_max(temp_vec);
-                prob_xz=prob_xz-maximum;
-                prob_xz0=prob_xz0-maximum;
-                prob_xz=exp(prob_xz);
-                prob_xz0=exp(prob_xz0);
+                temp_vec(0)=temp_vec(0)-maximum;
+                temp_vec(1)=temp_vec(1)-maximum;
+                temp_vec(0)=exp(temp_vec(0));
+                temp_vec(1)=exp(temp_vec(1));
 
-                long double prob_param=prob_xz/(prob_xz+prob_xz0);
+                long double prob_param=temp_vec(0)/(temp_vec(0)+temp_vec(1));
                 
                 std::cout <<"Prob_param:"<< prob_param << std::endl;
 
