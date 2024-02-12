@@ -175,8 +175,11 @@ Rcpp::List GibbsSampler_betabernoulli( double alpha, double theta, double sigma_
     
                         Z(i, Znew.cols() + itt) = 1;
                         M = update_M(M, Z.row(i));
+                        std::cout << "M aggiornata: " << M << std::endl;
                         long double px_znewfeat= calculate_log_likelihood(Z,X,M,sigma_x,sigma_a,K+itt,D,n);
+                        std::cout << "px_znewfeat: " << px_znewfeat << std::endl;
                         prob_new(itt) = log(bin_prob) + px_znewfeat;
+                        std::cout << "prob_new: " << prob_new << std::endl;
     
                     }
                     // Normalize posterior probabilities
@@ -185,11 +188,11 @@ Rcpp::List GibbsSampler_betabernoulli( double alpha, double theta, double sigma_
                         prob_new(ii)=prob_new(ii)-max2;
                         prob_new(ii)=exp(prob_new(ii));
                     }
-                    std::cout << "Prob_new:" << std::endl;
+                    
                     double sum_posterior = prob_new.sum();
                     for (unsigned l = 0; l < prob_new.size(); ++l) {
                         prob_new(l) /= sum_posterior;
-                        std::cout << prob_new(l) << std::endl;
+                        std::cout << "prob_new per indice = " << l << ": " << prob_new(l) << std::endl;
                     }
                     
                     
@@ -198,6 +201,7 @@ Rcpp::List GibbsSampler_betabernoulli( double alpha, double theta, double sigma_
                     //std::discrete_distribution<int> distribution(prob_new.begin(), prob_new.end());
                     std::discrete_distribution<int> distribution(prob_new.data(), prob_new.data() + prob_new.size());
                     int new_feat = distribution(generator);
+                    std::cout << "Numero di nuove features: " << new_feat << std::endl;
 
 
                     //update Z-part2:
@@ -209,6 +213,7 @@ Rcpp::List GibbsSampler_betabernoulli( double alpha, double theta, double sigma_
         }
         VectorXd vect=fill_m(Z);
         K=count_nonzero(vect);
+        std::cout << "(siamo alla riga 216) K: " << K << std::endl;
 
 
 
