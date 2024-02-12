@@ -224,16 +224,22 @@ Rcpp::List GibbsSampler_betabernoulli( double alpha, double theta, double sigma_
         //Per il BB utilizzo Eq 21 e 12:
 
         int D = A.cols();
+        std::cout << "D: " << D << std::endl;
 
         // Eq 21 dopo averla messa nel logaritmo:
 
         long double eq_21_log_denominator = -(n * D / 2) * log(2 * pi) - (n - K) * D * log(sigma_x) - K * D * log(sigma_a) - D / 2 *log((Z.transpose() *Z + sigma_x * sigma_x /sigma_a /sigma_a *Eigen::MatrixXd::Identity(Z.cols(), Z.cols())).determinant());                                                                                    //
-
+        std::cout << "eq_21_log_denominator: " << eq_21_log_denominator << std::endl;
+        
         Eigen::MatrixXd MM = (Z.transpose() * Z + sigma_x * sigma_x / sigma_a / sigma_a *Eigen::MatrixXd::Identity(Z.cols(), Z.cols())).inverse();
+        std::cout << "MM: " << MM << std::endl;
 
         MatrixXd matmat = X.transpose() * (Eigen::MatrixXd::Identity(n, n) - (Z * MM * Z.transpose())) * X;
+        std::cout << "matmat: " << matmat << std::endl;
         long double eq_21_log_exponential = -matmat.trace() / sigma_x / sigma_x / 2;
+        std::cout << "eq_21_log_exponential: " << eq_21_log_exponential << std::endl;
         long double eq_21_log = eq_21_log_denominator + eq_21_log_exponential;
+        std::cout << "eq_21_log: " << eq_21_log << std::endl;
         
         // Rcpp::Rcout << "eq_21_log_denominator + eq_21_log_exponential = " << eq_21_log_denominator << " + " << eq_21_log_exponential << " = " << eq_21_log << endl;
 
