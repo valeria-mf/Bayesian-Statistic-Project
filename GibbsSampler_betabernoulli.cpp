@@ -118,16 +118,20 @@ Rcpp::List GibbsSampler_betabernoulli( double alpha, double theta, double sigma_
                 
                 Eigen::VectorXd temp_vec(2);
                 temp_vec(0)=prob_xz+ log(prob_zz);
+                std::cout << "Print della prima log_p: " << temp_vec(0) << std::endl;
                 temp_vec(1)=prob_xz0+ log(1-prob_zz);
+                std::cout << "Print della seconda log_p: " << temp_vec(1) << std::endl;
                 long double maximum=find_max(temp_vec);
+                std::cout << "Print del max fra le due: " << maximum << std::endl;
                 temp_vec(0)=temp_vec(0)-maximum;
                 temp_vec(1)=temp_vec(1)-maximum;
                 temp_vec(0)=exp(temp_vec(0));
+                std::cout << "Prima prob: " << temp_vec(0) << std::endl;
                 temp_vec(1)=exp(temp_vec(1));
+                std::cout << "Seconda prob: " << temp_vec(1) << std::endl;
 
                 long double prob_param=temp_vec(0)/(temp_vec(0)+temp_vec(1));
-                
-                std::cout <<"Prob_param:"<< prob_param << std::endl;
+                std::cout << "prob_param, quella usata per la bernoulli: " << prob_param << std::endl;
 
 
                 //sample from Bernoulli distribution:
@@ -139,8 +143,11 @@ Rcpp::List GibbsSampler_betabernoulli( double alpha, double theta, double sigma_
 
                 ++count;
             }
-
+        
+                std::cout << "Print della Z prima di samplare nuove features: " << Z << std::endl;
+            
                 unsigned n_res = n_tilde - K;
+                std::cout << "n_res, numero di features non ancora scelte: " << n_res << std::endl;
                 if (n_res > 0) {
                     //sample the number of new features:
 
@@ -150,17 +157,21 @@ Rcpp::List GibbsSampler_betabernoulli( double alpha, double theta, double sigma_
                         Z.col(j) = Znew.col(j);
                     for (Eigen::Index kk = j; kk < Z.cols(); ++kk)
                         Z.col(kk).setZero();
+                    std::cout << "Z dopo aver messo le colonne nulle a destra: " << Z << std::endl;
 
 
                     M = (Z.transpose() * Z -
                          Eigen::MatrixXd::Identity(n_tilde, n_tilde) * pow(sigma_x / sigma_a, 2)).inverse();
+                    std::cout << "Nuova M: " << M << std::endl;
 
 
                     double prob = 1 - (theta + alpha + n - 1) / (theta + n - 1);
+                    std::cout << "Prob di estrarre una nuova feature: " << prob << std::endl;
 
                     Eigen::VectorXd prob_new(n_res);
                     for (unsigned itt = 0; itt < n_res; ++itt) {
                         long double bin_prob = binomialProbability(n_res, prob, itt);
+                        std::cout << "bin_prob, risultato della binomiale per itt = " << itt << ": " << bin_prob << std::endl;
     
                         Z(i, Znew.cols() + itt) = 1;
                         M = update_M(M, Z.row(i));
