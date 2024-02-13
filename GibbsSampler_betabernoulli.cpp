@@ -34,12 +34,22 @@ Rcpp::List GibbsSampler_betabernoulli( double alpha, double theta, double sigma_
 
     std::bernoulli_distribution Z_initializer(0.5);
     for(unsigned i=0; i< n ; ++i)
-        //for(unsigned j=0; j<n_tilde;++j)
+       // for(unsigned j=0; j<n_tilde;++j)
             Z(i, 0) = Z_initializer(generator) ? 1 : 0;
-  //  std::cout << Z << std::endl;
+    //std::cout << Z << std::endl;
+    /*
+    Z(0,1)=1;
+    Z(1,2)=1;
+    Z(2,0)=1;
+    Z(3,1)=1;
+    Z(4,3)=1;
+    Z(5,3)=1;
+    Z(6,0)=1;
+    Z(7,2)=1;
+    std::cout << "Print di Zinizializzata: " << Z << std::endl;*/
+   
 
-
-
+    
     // D:
     const unsigned D = A.cols();
 
@@ -56,21 +66,22 @@ Rcpp::List GibbsSampler_betabernoulli( double alpha, double theta, double sigma_
 
 
     for (Eigen::Index it=0;it<n_iter+initial_iters;++it){
-        std::cout << "\nInizio iterazione " << it << std::endl;
+      //std::cout << "\nInizio iterazione " << it << std::endl;
 
         unsigned K;
 
         MatrixXd Znew;
 
         //INITIALIZE M MATRIX:
-        MatrixXd M=(Z.transpose()*Z -  Eigen::MatrixXd::Identity(n_tilde,n_tilde)*pow(sigma_x/sigma_a,2)).inverse();
-        std::cout << "Print di M: " << M << std::endl;
+        MatrixXd M=(Z.transpose()*Z +  Eigen::MatrixXd::Identity(n_tilde,n_tilde)*pow(sigma_x/sigma_a,2)).inverse();
+        //std::cout << "Print di M: " << M << std::endl;
 
 
         for (Eigen::Index i=0; i<n;++i) {
 
             Eigen::VectorXd z_i = Z.row(i);
-            std::cout << "Print della riga " << i+1 << " di Z: " << z_i << std::endl;
+          //if(i<3)
+              // std::cout << "Print della riga " << i+1 << " di Z: " << z_i << std::endl;
 
 
             Z.row(i).setZero();
@@ -80,58 +91,77 @@ Rcpp::List GibbsSampler_betabernoulli( double alpha, double theta, double sigma_
             matvec = eliminate_null_columns(Z);
             
             Znew = matvec.first; //the new matrix that I will update
-            std::cout << "Print di Znew: " << Znew << std::endl;
+           // std::cout << "Print di Znew: " << Znew << std::endl;
             positions = matvec.second; //to see the positions where I remove the columns
-            std::cout << "Print delle posizioni delle colonne non nulle: " << positions << std::endl;
+            // if(i<3)
+              //  std::cout << "Print delle posizioni delle colonne non nulle: " << positions << std::endl;
 
             Z.row(i) = z_i;
             Eigen:VectorXd m = fill_m(Znew);
-            std::cout << "Print del vettore che ha al posto i la somma dei valori sulla colonna i di Znew: " << m << std::endl;
+            // if(i<3)
+              // std::cout << "Print del vettore che ha al posto i la somma dei valori sulla colonna i di Znew: \n" << m << std::endl;
 
             //update the number of observed features:
             K = m.size();
-            std::cout << "Print di K: " << K << std::endl;
+            //  if(i<3)
+              // std::cout << "Print di K: " << K << std::endl;
             
 
             Eigen::Index count = 0;
 
             for (Eigen::Index j = 0; j < K; ++j) {
+                //std::cout << "j: " << j << std::endl;
                 while (positions(count) == 0)
                     ++count;
+                // if(i<3)
+                // std::cout << "Count: " << count << std::endl;
 
                 double prob_zz = (m(j) - alpha) / (theta + (n - 1));
-                std::cout << "Print di prob_zz: " << prob_zz << std::endl;
+                //  if(i<3)
+                // std::cout << "Print di prob_zz: " << prob_zz << std::endl;
 
                 //P(X|Z) when z_ij=1:
                 Z(i, count) = 1;
-                M = update_M(M, Z.row(i));
-                std::cout << "Update di M quando z_" << i << count << " vale 1: " << M << std::endl;
+                //M = update_M(M, Z.row(i));
+                M=(Z.transpose()*Z +  Eigen::MatrixXd::Identity(n_tilde,n_tilde)*pow(sigma_x/sigma_a,2)).inverse();
+                //  if(i<3)
+                //  std::cout << "Update di M quando z_" << i << count << " vale 1: \n" << M << std::endl;
                 long double prob_xz = calculate_log_likelihood(Z,X,M,sigma_x,sigma_a,K,D,n);
-                std::cout << "Print di prob_xz, log_likelihood per z=1: " << prob_xz << std::endl;
+                // if(i<3)
+                //  std::cout << "Print di prob_xz, log_likelihood per z=1: " << prob_xz << std::endl;
 
                 //P(X|Z) when z_ij=0:
                 Z(i, count) = 0;
-                M = update_M(M, Z.row(i));
-                std::cout << "Update di M quando z_" << i << count << " vale 0: " << M << std::endl;
+                //M = update_M(M, Z.row(i));
+                M=(Z.transpose()*Z +  Eigen::MatrixXd::Identity(n_tilde,n_tilde)*pow(sigma_x/sigma_a,2)).inverse();
+                // if(i<3)
+                // std::cout << "Update di M quando z_" << i << count << " vale 0:\n " << M << std::endl;
                 long double prob_xz0 = calculate_log_likelihood(Z,X,M,sigma_x,sigma_a,n_tilde,D,n);
-                std::cout << "Print di prob_xz, log_likelihood per z=0: " << prob_xz << std::endl;
+                //  if(i<3)
+                // std::cout << "Print di prob_xz, log_likelihood per z=0: " << prob_xz0 << std::endl;
                 
                 Eigen::VectorXd temp_vec(2);
                 temp_vec(0)=prob_xz+ log(prob_zz);
-                std::cout << "Print della prima log_p: " << temp_vec(0) << std::endl;
+                // if(i<3)
+                //  std::cout << "Print della prima log_p: " << temp_vec(0) << std::endl;
                 temp_vec(1)=prob_xz0+ log(1-prob_zz);
-                std::cout << "Print della seconda log_p: " << temp_vec(1) << std::endl;
+                // if(i<3)
+                //  std::cout << "Print della seconda log_p: " << temp_vec(1) << std::endl;
                 long double maximum=find_max(temp_vec);
-                std::cout << "Print del max fra le due: " << maximum << std::endl;
+                // if(i<3)
+                //  std::cout << "Print del max fra le due: " << maximum << std::endl;
                 temp_vec(0)=temp_vec(0)-maximum;
                 temp_vec(1)=temp_vec(1)-maximum;
                 temp_vec(0)=exp(temp_vec(0));
-                std::cout << "Prima prob: " << temp_vec(0) << std::endl;
+                // if(i<3)
+                // std::cout << "Prima prob: " << temp_vec(0) << std::endl;
                 temp_vec(1)=exp(temp_vec(1));
-                std::cout << "Seconda prob: " << temp_vec(1) << std::endl;
+                //  if(i<3)
+                // std::cout << "Seconda prob: " << temp_vec(1) << std::endl;
 
                 long double prob_param=temp_vec(0)/(temp_vec(0)+temp_vec(1));
-                std::cout << "prob_param, quella usata per la bernoulli: " << prob_param << std::endl;
+                // if(i<3)
+                //  std::cout << "prob_param, quella usata per la bernoulli: " << prob_param << std::endl;
 
 
                 //sample from Bernoulli distribution:
@@ -139,15 +169,18 @@ Rcpp::List GibbsSampler_betabernoulli( double alpha, double theta, double sigma_
 
                 Znew(i, j) = distribution_bern(generator) ? 1 : 0;
                 Z(i, count) = Znew(i, j);
+                // if(i<3)
+                // std::cout << "Z(i,count): " << Z(i,count) << std::endl;
 
 
                 ++count;
             }
-        
-                std::cout << "Print della Z prima di samplare nuove features: " << Z << std::endl;
+            //  if(i<3)
+            //  std::cout << "Print della Z prima di samplare nuove features: \n" << Z << std::endl;
             
                 unsigned n_res = n_tilde - K;
-                std::cout << "n_res, numero di features non ancora scelte: " << n_res << std::endl;
+            // if(i<3)
+            //     std::cout << "n_res, numero di features non ancora scelte: " << n_res << std::endl;
                 if (n_res > 0) {
                     //sample the number of new features:
 
@@ -157,29 +190,37 @@ Rcpp::List GibbsSampler_betabernoulli( double alpha, double theta, double sigma_
                         Z.col(j) = Znew.col(j);
                     for (Eigen::Index kk = j; kk < Z.cols(); ++kk)
                         Z.col(kk).setZero();
-                    std::cout << "Z dopo aver messo le colonne nulle a destra: " << Z << std::endl;
+                    // if(i<3)
+                    // std::cout << "Z dopo aver messo le colonne nulle a destra:\n" << Z << std::endl;
 
 
-                    M = (Z.transpose() * Z -
+                    M = (Z.transpose() * Z +
                          Eigen::MatrixXd::Identity(n_tilde, n_tilde) * pow(sigma_x / sigma_a, 2)).inverse();
-                    std::cout << "Nuova M: " << M << std::endl;
+                    //  if(i<3)
+                    // std::cout << "Nuova M: " << M << std::endl;
 
 
                     double prob = 1 - (theta + alpha + n - 1) / (theta + n - 1);
-                    std::cout << "Prob di estrarre una nuova feature: " << prob << std::endl;
+                    // if(i<3)
+                    // std::cout << "Prob di estrarre una nuova feature: " << prob << std::endl;
 
-                    Eigen::VectorXd prob_new(n_res);
-                    for (unsigned itt = 0; itt < n_res; ++itt) {
+                    Eigen::VectorXd prob_new(n_res+1);
+                    for (unsigned itt = 0; itt <= n_res; ++itt) {
                         long double bin_prob = binomialProbability(n_res, prob, itt);
-                        std::cout << "bin_prob, risultato della binomiale per itt = " << itt << ": " << bin_prob << std::endl;
-    
-                        Z(i, Znew.cols() + itt) = 1;
-                        M = update_M(M, Z.row(i));
-                        std::cout << "M aggiornata: " << M << std::endl;
-                        long double px_znewfeat= calculate_log_likelihood(Z,X,M,sigma_x,sigma_a,K+itt,D,n);
-                        std::cout << "px_znewfeat: " << px_znewfeat << std::endl;
-                        prob_new(itt) = log(bin_prob) + px_znewfeat;
-                        std::cout << "prob_new: " << prob_new << std::endl;
+                        //if(i<3)
+                          //std::cout << "bin_prob, risultato della binomiale per itt = " << itt << ": " << bin_prob << std::endl;
+                        if (itt>0)
+                         Z(i, Znew.cols()-1 + itt) = 1;
+                         //M = update_M(M, Z.row(i));
+                         M=(Z.transpose()*Z +  Eigen::MatrixXd::Identity(n_tilde,n_tilde)*pow(sigma_x/sigma_a,2)).inverse();
+                         //if(i<3)
+                           //std::cout << "M aggiornata: " << M << std::endl;
+                         long double px_znewfeat= calculate_log_likelihood(Z,X,M,sigma_x,sigma_a,K+itt,D,n);
+                         //if(i<3)
+                            //std::cout << "px_znewfeat: " << px_znewfeat << std::endl;
+                         prob_new(itt) = log(bin_prob) + px_znewfeat;
+                         // if(i<3)
+                         //std::cout << "prob_new: " << prob_new << std::endl;
     
                     }
                     // Normalize posterior probabilities
@@ -192,7 +233,8 @@ Rcpp::List GibbsSampler_betabernoulli( double alpha, double theta, double sigma_
                     double sum_posterior = prob_new.sum();
                     for (unsigned l = 0; l < prob_new.size(); ++l) {
                         prob_new(l) /= sum_posterior;
-                        std::cout << "prob_new per indice = " << l << ": " << prob_new(l) << std::endl;
+                      // if(i<3)
+                      //   std::cout << "prob_new per indice = " << l << ": " << prob_new(l) << std::endl;
                     }
                     
                     
@@ -201,19 +243,22 @@ Rcpp::List GibbsSampler_betabernoulli( double alpha, double theta, double sigma_
                     //std::discrete_distribution<int> distribution(prob_new.begin(), prob_new.end());
                     std::discrete_distribution<int> distribution(prob_new.data(), prob_new.data() + prob_new.size());
                     int new_feat = distribution(generator);
-                    std::cout << "Numero di nuove features: " << new_feat << std::endl;
+                    // std::cout << "Numero di nuove features: " << new_feat << std::endl;
 
 
                     //update Z-part2:
-                    j--;
-                    for (; j >= Znew.cols() + new_feat; --j) {
+                    
+                    for (j=Znew.cols()+new_feat; j < Z.cols(); ++j) {
                         Z(i, j) = 0;
                     }
+                    // if(i<3)
+                    // std::cout << "Z dopo aver finito la riga "<<i+1<<":\n" << Z << std::endl;
                 }
         }
         VectorXd vect=fill_m(Z);
         K=count_nonzero(vect);
-        std::cout << "(siamo alla riga 216) K: " << K << std::endl;
+        
+        //  std::cout << "(siamo alla riga 216) K: " << K << std::endl;
 
 
 
@@ -224,22 +269,22 @@ Rcpp::List GibbsSampler_betabernoulli( double alpha, double theta, double sigma_
         //Per il BB utilizzo Eq 21 e 12:
 
         int D = A.cols();
-        std::cout << "D: " << D << std::endl;
+        //  std::cout << "D: " << D << std::endl;
 
         // Eq 21 dopo averla messa nel logaritmo:
 
         long double eq_21_log_denominator = -(n * D / 2) * log(2 * pi) - (n - K) * D * log(sigma_x) - K * D * log(sigma_a) - D / 2 *log((Z.transpose() *Z + sigma_x * sigma_x /sigma_a /sigma_a *Eigen::MatrixXd::Identity(Z.cols(), Z.cols())).determinant());                                                                                    //
-        std::cout << "eq_21_log_denominator: " << eq_21_log_denominator << std::endl;
+        // std::cout << "eq_21_log_denominator: " << eq_21_log_denominator << std::endl;
         
         Eigen::MatrixXd MM = (Z.transpose() * Z + sigma_x * sigma_x / sigma_a / sigma_a *Eigen::MatrixXd::Identity(Z.cols(), Z.cols())).inverse();
-        std::cout << "MM: " << MM << std::endl;
+        //  std::cout << "MM: " << MM << std::endl;
 
         MatrixXd matmat = X.transpose() * (Eigen::MatrixXd::Identity(n, n) - (Z * MM * Z.transpose())) * X;
-        std::cout << "matmat: " << matmat << std::endl;
+        // std::cout << "matmat: " << matmat << std::endl;
         long double eq_21_log_exponential = -matmat.trace() / sigma_x / sigma_x / 2;
-        std::cout << "eq_21_log_exponential: " << eq_21_log_exponential << std::endl;
+        // std::cout << "eq_21_log_exponential: " << eq_21_log_exponential << std::endl;
         long double eq_21_log = eq_21_log_denominator + eq_21_log_exponential;
-        std::cout << "eq_21_log: " << eq_21_log << std::endl;
+        // std::cout << "eq_21_log: " << eq_21_log << std::endl;
         
         // Rcpp::Rcout << "eq_21_log_denominator + eq_21_log_exponential = " << eq_21_log_denominator << " + " << eq_21_log_exponential << " = " << eq_21_log << endl;
 
@@ -248,14 +293,14 @@ Rcpp::List GibbsSampler_betabernoulli( double alpha, double theta, double sigma_
         long double eq_12_log_fraction = compute_cardinality(Z);
 
         Eigen::VectorXd mm = fill_m(Z);
-        std::cout << "mm (fill_m(Z)): " << mm << std::endl;
+        // std::cout << "mm (fill_m(Z)): " << mm << std::endl;
         long double eq_12_log_product = 0;
         for (size_t k = 0; k < K; k++) {
             eq_12_log_product += log(-alpha / K) + log(tgamma(mm(k) + alpha / K)) + log(tgamma(n - mm(k) + 1)) - log(tgamma(n + 1 + alpha / K));
         }
         long double eq_12_log = eq_12_log_fraction + eq_12_log_product; // A volte ritorna valori positivi: questo implica che P(Z)>1 che è impossibile.
                                                                         // CALCOLI DA RIVEDERE
-        std::cout << "eq_12_log: " << eq_12_log << std::endl;
+                                                                        // std::cout << "eq_12_log: " << eq_12_log << std::endl;
         
         // Rcpp::Rcout << "eq_12_log = eq_12_log_fraction + eq_12_log_product = " << eq_12_log_fraction << " + " << eq_12_log_product << " = " << eq_12_log << endl;
 
@@ -265,13 +310,13 @@ Rcpp::List GibbsSampler_betabernoulli( double alpha, double theta, double sigma_
         // Rcpp::Rcout << "pXZ_log = eq_12_log + eq_21_log = " <<  eq_12_log << " + " << eq_21_log << " = " << pXZ_log << std::endl;
         
         Expected_A_given_XZ = (Z.transpose()*Z+pow(sigma_x/sigma_a,2)*Eigen::MatrixXd::Identity(Z.cols(), Z.cols())).inverse()*Z.transpose()*X;
-        std::cout << "Expected_A_given_XZ: " << Expected_A_given_XZ << std::endl;
+        // std::cout << "Expected_A_given_XZ: " << Expected_A_given_XZ << std::endl;
         
         //----------------------------------------------------------------------
         //FINE calcolo log[P(X|Z)]
         
         logPXZ_vector(it)=pXZ_log;
-        std::cout << "logPXZ_vector: " << logPXZ_vector << std::endl;
+        // std::cout << "logPXZ_vector: " << logPXZ_vector << std::endl;
         
         //fill the K_vector
         K_vector(it)=K;
