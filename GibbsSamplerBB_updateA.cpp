@@ -34,27 +34,31 @@ Rcpp::List GibbsSampler_betabernoulli( double alpha, double theta, double sigma_
   // D:
     const unsigned D = X.cols();
  
-    // Initialization of Z and m:
+   // Initialization of Z
     MatrixXd Z = Eigen::MatrixXd::Zero(n, n_tilde);
-    VectorXd m(n_tilde);
-    
    
+    std::default_random_engine generator;
 
     std::bernoulli_distribution Z_initializer(0.5);
     for(unsigned i=0; i< n ; ++i)
-      for(unsigned j=0; j<n_tilde; ++j)
-            Z(i, j) = Z_initializer(generator) ? 1 : 0;
-  //  std::cout << Z << std::endl;
-
- //Initialization of A:
-  MatrixXd A = Eigen::MatrixXd::Zero(n_tilde, D);
-  std::normal_distribution<double> A_initializer(0,1);
-  for(unsigned i=0; i<n_tilde;++i)
-        for(unsigned j=0;j<D;++j)
-            A(i, j) = A_initializer(generator);
-  
+       // for(unsigned j=0; j<n_tilde;++j)
+            Z(i, 0) = Z_initializer(generator) ? 1 : 0;
+    //std::cout << Z << std::endl;
+    /*
+    Z(0,1)=1;
+    Z(1,2)=1;
+    Z(2,0)=1;
+    Z(3,1)=1;
+    Z(4,3)=1;
+    Z(5,3)=1;
+    Z(6,0)=1;
+    Z(7,2)=1;
+    std::cout << "Print di Zinizializzata: " << Z << std::endl;*/
+   
 
     
+    // D:
+    const unsigned D = A.cols();
 
     //create a set to put the generated Z matrices:
     matrix_collection Ret;
@@ -63,29 +67,28 @@ Rcpp::List GibbsSampler_betabernoulli( double alpha, double theta, double sigma_
     VectorXd K_vector(n_iter+initial_iters);
     //create a vector to put the log[P(X|Z)]
     VectorXd logPXZ_vector(n_iter+initial_iters);
-    VectorXd sigmaA_vector(n_iter+initial_iters);
-    VectorXd sigmaX_vector(n_iter+initial_iters);
     Eigen::MatrixXd Expected_A_given_XZ;
-    int accepted_iterations_x=0;
-    int accepted_iterations_a=0;
-    long double acceptance_probability_x;
-    long double acceptance_probability_a;
     
 
 
 
     for (Eigen::Index it=0;it<n_iter+initial_iters;++it){
+      //std::cout << "\nInizio iterazione " << it << std::endl;
 
         unsigned K;
+
         MatrixXd Znew;
 
         //INITIALIZE M MATRIX:
-        MatrixXd M=(Z.transpose()*Z -  Eigen::MatrixXd::Identity(n_tilde,n_tilde)*pow(sigma_x/sigma_a,2)).inverse();
+        MatrixXd M=(Z.transpose()*Z +  Eigen::MatrixXd::Identity(n_tilde,n_tilde)*pow(sigma_x/sigma_a,2)).inverse();
+        //std::cout << "Print di M: " << M << std::endl;
 
 
         for (Eigen::Index i=0; i<n;++i) {
 
             Eigen::VectorXd z_i = Z.row(i);
+          //if(i<3)
+              // std::cout << "Print della riga " << i+1 << " di Z: " << z_i << std::endl;
 
 
             Z.row(i).setZero();
@@ -93,56 +96,98 @@ Rcpp::List GibbsSampler_betabernoulli( double alpha, double theta, double sigma_
             VectorXd positions;
             auto matvec = std::make_pair(Znew, positions);
             matvec = eliminate_null_columns(Z);
+            
             Znew = matvec.first; //the new matrix that I will update
+           // std::cout << "Print di Znew: " << Znew << std::endl;
             positions = matvec.second; //to see the positions where I remove the columns
+            // if(i<3)
+              //  std::cout << "Print delle posizioni delle colonne non nulle: " << positions << std::endl;
 
             Z.row(i) = z_i;
-            m = fill_m(Znew);
+            Eigen:VectorXd m = fill_m(Znew);
+            // if(i<3)
+              // std::cout << "Print del vettore che ha al posto i la somma dei valori sulla colonna i di Znew: \n" << m << std::endl;
 
             //update the number of observed features:
-            K = count_nonzero(m);
+            K = m.size();
+            //  if(i<3)
+              // std::cout << "Print di K: " << K << std::endl;
+            
 
             Eigen::Index count = 0;
 
             for (Eigen::Index j = 0; j < K; ++j) {
+                //std::cout << "j: " << j << std::endl;
                 while (positions(count) == 0)
                     ++count;
+                // if(i<3)
+                // std::cout << "Count: " << count << std::endl;
 
                 double prob_zz = (m(j) - alpha) / (theta + (n - 1));
+                //  if(i<3)
+                // std::cout << "Print di prob_zz: " << prob_zz << std::endl;
 
                 //P(X|Z) when z_ij=1:
                 Z(i, count) = 1;
-                M = update_M(M, Z.row(i));
+                //M = update_M(M, Z.row(i));
+                M=(Z.transpose()*Z +  Eigen::MatrixXd::Identity(n_tilde,n_tilde)*pow(sigma_x/sigma_a,2)).inverse();
+                //  if(i<3)
+                //  std::cout << "Update di M quando z_" << i << count << " vale 1: \n" << M << std::endl;
+                long double prob_xz = calculate_log_likelihood(Z,X,M,sigma_x,sigma_a,K,D,n);
+                // if(i<3)
+                //  std::cout << "Print di prob_xz, log_likelihood per z=1: " << prob_xz << std::endl;
 
-                long double prob_xz= calculate_likelihood(Z,X,M,sigma_x,sigma_a,n_tilde,D,n);
-
-
-
-                //P(X|Z) when z_ij=1:
+                //P(X|Z) when z_ij=0:
                 Z(i, count) = 0;
-                M = update_M(M, Z.row(i));
+                //M = update_M(M, Z.row(i));
+                M=(Z.transpose()*Z +  Eigen::MatrixXd::Identity(n_tilde,n_tilde)*pow(sigma_x/sigma_a,2)).inverse();
+                // if(i<3)
+                // std::cout << "Update di M quando z_" << i << count << " vale 0:\n " << M << std::endl;
+                long double prob_xz0 = calculate_log_likelihood(Z,X,M,sigma_x,sigma_a,n_tilde,D,n);
+                //  if(i<3)
+                // std::cout << "Print di prob_xz, log_likelihood per z=0: " << prob_xz0 << std::endl;
                 
-                long double prob_xz0 = calculate_likelihood(Z,X,M,sigma_x,sigma_a,n_tilde,D,n);
+                Eigen::VectorXd temp_vec(2);
+                temp_vec(0)=prob_xz+ log(prob_zz);
+                // if(i<3)
+                //  std::cout << "Print della prima log_p: " << temp_vec(0) << std::endl;
+                temp_vec(1)=prob_xz0+ log(1-prob_zz);
+                // if(i<3)
+                //  std::cout << "Print della seconda log_p: " << temp_vec(1) << std::endl;
+                long double maximum=find_max(temp_vec);
+                // if(i<3)
+                //  std::cout << "Print del max fra le due: " << maximum << std::endl;
+                temp_vec(0)=temp_vec(0)-maximum;
+                temp_vec(1)=temp_vec(1)-maximum;
+                temp_vec(0)=exp(temp_vec(0));
+                // if(i<3)
+                // std::cout << "Prima prob: " << temp_vec(0) << std::endl;
+                temp_vec(1)=exp(temp_vec(1));
+                //  if(i<3)
+                // std::cout << "Seconda prob: " << temp_vec(1) << std::endl;
 
+                long double prob_param=temp_vec(0)/(temp_vec(0)+temp_vec(1));
+                // if(i<3)
+                //  std::cout << "prob_param, quella usata per la bernoulli: " << prob_param << std::endl;
 
-                //Bernoulli parameter:
-
-                long double prob_one_temp = prob_zz * prob_xz;
-                long double prob_zero_temp = (1 - prob_zz) * prob_xz0;
-                long double prob_param = prob_one_temp / (prob_one_temp + prob_zero_temp); //PROBLEM: always too small
 
                 //sample from Bernoulli distribution:
                 std::bernoulli_distribution distribution_bern(prob_param);
 
                 Znew(i, j) = distribution_bern(generator) ? 1 : 0;
                 Z(i, count) = Znew(i, j);
+                // if(i<3)
+                // std::cout << "Z(i,count): " << Z(i,count) << std::endl;
 
 
                 ++count;
             }
-
+            //  if(i<3)
+            //  std::cout << "Print della Z prima di samplare nuove features: \n" << Z << std::endl;
+            
                 unsigned n_res = n_tilde - K;
-                std::cout << "Questo print a riga 145 serve per vedere se n_res rimane a zero: " << n_res << std::endl; // c
+            // if(i<3)
+            //     std::cout << "n_res, numero di features non ancora scelte: " << n_res << std::endl;
                 if (n_res > 0) {
                     //sample the number of new features:
 
@@ -152,43 +197,72 @@ Rcpp::List GibbsSampler_betabernoulli( double alpha, double theta, double sigma_
                         Z.col(j) = Znew.col(j);
                     for (Eigen::Index kk = j; kk < Z.cols(); ++kk)
                         Z.col(kk).setZero();
+                    // if(i<3)
+                    // std::cout << "Z dopo aver messo le colonne nulle a destra:\n" << Z << std::endl;
 
 
-                    M = (Z.transpose() * Z -
+                    M = (Z.transpose() * Z +
                          Eigen::MatrixXd::Identity(n_tilde, n_tilde) * pow(sigma_x / sigma_a, 2)).inverse();
+                    //  if(i<3)
+                    // std::cout << "Nuova M: " << M << std::endl;
 
 
                     double prob = 1 - (theta + alpha + n - 1) / (theta + n - 1);
+                    // if(i<3)
+                    // std::cout << "Prob di estrarre una nuova feature: " << prob << std::endl;
 
-                    Eigen::VectorXd prob_new(n_res);
-                    for (unsigned itt = 0; itt < n_res; ++itt) {
-                        double bin_prob = binomialProbability(n_res, prob, itt);
-                        Z(i, j + itt) = 1;
-                        M = update_M(M, Z.row(i));
-                        
-                        long double p_xz = calculate_likelihood(Z,X,M,sigma_x,sigma_a,n_tilde,D,n);
-                        prob_new(itt) = bin_prob * p_xz;
+                    Eigen::VectorXd prob_new(n_res+1);
+                    for (unsigned itt = 0; itt <= n_res; ++itt) {
+                        long double bin_prob = binomialProbability(n_res, prob, itt);
+                        //if(i<3)
+                          //std::cout << "bin_prob, risultato della binomiale per itt = " << itt << ": " << bin_prob << std::endl;
+                        if (itt>0)
+                         Z(i, Znew.cols()-1 + itt) = 1;
+                         //M = update_M(M, Z.row(i));
+                         M=(Z.transpose()*Z +  Eigen::MatrixXd::Identity(n_tilde,n_tilde)*pow(sigma_x/sigma_a,2)).inverse();
+                         //if(i<3)
+                           //std::cout << "M aggiornata: " << M << std::endl;
+                         long double px_znewfeat= calculate_log_likelihood(Z,X,M,sigma_x,sigma_a,K+itt,D,n);
+                         //if(i<3)
+                            //std::cout << "px_znewfeat: " << px_znewfeat << std::endl;
+                         prob_new(itt) = log(bin_prob) + px_znewfeat;
+                         // if(i<3)
+                         //std::cout << "prob_new: " << prob_new << std::endl;
+    
                     }
                     // Normalize posterior probabilities
+                    long double max2=find_max(prob_new);
+                    for (unsigned ii=0; ii<prob_new.size();++ii){
+                        prob_new(ii)=prob_new(ii)-max2;
+                        prob_new(ii)=exp(prob_new(ii));
+                    }
+                    
                     double sum_posterior = prob_new.sum();
                     for (unsigned l = 0; l < prob_new.size(); ++l) {
                         prob_new(l) /= sum_posterior;
+                      // if(i<3)
+                      //   std::cout << "prob_new per indice = " << l << ": " << prob_new(l) << std::endl;
                     }
+                    
+                    
 
                     // Sample the number of new features based on posterior probabilities
                     //std::discrete_distribution<int> distribution(prob_new.begin(), prob_new.end());
                     std::discrete_distribution<int> distribution(prob_new.data(), prob_new.data() + prob_new.size());
                     int new_feat = distribution(generator);
-                    std::cout << "Questo print alla riga 182 serve per vedere se new_feat rimane zero: " << new_feat << std::endl;
+                    // std::cout << "Numero di nuove features: " << new_feat << std::endl;
 
 
                     //update Z-part2:
-                    j--;
-                    for (; j >= Znew.cols() + new_feat; --j) {
+                    
+                    for (j=Znew.cols()+new_feat; j < Z.cols(); ++j) {
                         Z(i, j) = 0;
                     }
+                    // if(i<3)
+                    // std::cout << "Z dopo aver finito la riga "<<i+1<<":\n" << Z << std::endl;
                 }
         }
+
         
         
         VectorXd vect=fill_m(Z);
