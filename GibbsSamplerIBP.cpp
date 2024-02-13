@@ -25,9 +25,11 @@ Rcpp::List GibbsSampler_IBP(const double alpha,const double gamma,const double s
     Eigen::Map<Eigen::MatrixXd> X(Rcpp::as<Eigen::Map<Eigen::MatrixXd>>(mat_X));
     
 
-    // Initialization of Z and m
+    // Initialization of Z
     MatrixXd Z(n,1);
-    VectorXd m;
+    for(unsigned i=0; i< n; ++i)
+         Z(i, 0) = Z_initializer(generator) ? 1 : 0;
+    
 
     // D:
     const unsigned D=A.cols();
@@ -53,7 +55,7 @@ Rcpp::List GibbsSampler_IBP(const double alpha,const double gamma,const double s
 
             MatrixXd M(z_cols,z_cols);
 
-            M=(Z.transpose()*Z -  Eigen::MatrixXd::Identity(z_cols,z_cols)*pow(sigma_x/sigma_a,2)).inverse();
+            M=(Z.transpose()*Z +  Eigen::MatrixXd::Identity(z_cols,z_cols)*pow(sigma_x/sigma_a,2)).inverse();
 
             Eigen::VectorXd z_i=Z.row(i);
 
@@ -66,10 +68,10 @@ Rcpp::List GibbsSampler_IBP(const double alpha,const double gamma,const double s
             positions=matvec.second;
 
             Z.row(i)=z_i;
-            m=fill_m(Znew);
+            Eigen::VectorXd m=fill_m(Znew);
 
             //update the number of observed features:
-            K= count_nonzero(m);
+            K= m.size();
 
             Eigen::Index count=0;
 
@@ -79,44 +81,62 @@ Rcpp::List GibbsSampler_IBP(const double alpha,const double gamma,const double s
 
                 double prob_zz=(m(j)-alpha)/(theta+(n-1));
 
-                //P(X|Z)
+               
+                //P(X|Z) when z_ij=1:
+                Z(i, count) = 1;
+                //M = update_M(M, Z.row(i));
+                M=(Z.transpose()*Z +  Eigen::MatrixXd::Identity(Z.cols(),Z.cols())*pow(sigma_x/sigma_a,2)).inverse();
+                //  if(i<3)
+                //  std::cout << "Update di M quando z_" << i << count << " vale 1: \n" << M << std::endl;
+                long double prob_xz = calculate_log_likelihood(Z,X,M,sigma_x,sigma_a,K,D,n);
+                // if(i<3)
+                //  std::cout << "Print di prob_xz, log_likelihood per z=1: " << prob_xz << std::endl;
 
-                Z(i,count)=1;
-                M= update_M(M,Z.row(i));
+                //P(X|Z) when z_ij=0:
+                Z(i, count) = 0;
+                //M = update_M(M, Z.row(i));
+                M=(Z.transpose()*Z +  Eigen::MatrixXd::Identity(Z.cols(),Z.cols())*pow(sigma_x/sigma_a,2)).inverse();
+                // if(i<3)
+                // std::cout << "Update di M quando z_" << i << count << " vale 0:\n " << M << std::endl;
+                long double prob_xz0 = calculate_log_likelihood(Z,X,M,sigma_x,sigma_a,n_tilde,D,n);
+                //  if(i<3)
+                // std::cout << "Print di prob_xz, log_likelihood per z=0: " << prob_xz0 << std::endl;
+                
+                Eigen::VectorXd temp_vec(2);
+                temp_vec(0)=prob_xz+ log(prob_zz);
+                // if(i<3)
+                //  std::cout << "Print della prima log_p: " << temp_vec(0) << std::endl;
+                temp_vec(1)=prob_xz0+ log(1-prob_zz);
+                // if(i<3)
+                //  std::cout << "Print della seconda log_p: " << temp_vec(1) << std::endl;
+                long double maximum=find_max(temp_vec);
+                // if(i<3)
+                //  std::cout << "Print del max fra le due: " << maximum << std::endl;
+                temp_vec(0)=temp_vec(0)-maximum;
+                temp_vec(1)=temp_vec(1)-maximum;
+                temp_vec(0)=exp(temp_vec(0));
+                // if(i<3)
+                // std::cout << "Prima prob: " << temp_vec(0) << std::endl;
+                temp_vec(1)=exp(temp_vec(1));
+                //  if(i<3)
+                // std::cout << "Seconda prob: " << temp_vec(1) << std::endl;
 
-                long double prob_xz_1=1/(pow((Z.transpose()*Z + sigma_x*sigma_x/sigma_a/sigma_a*Eigen::MatrixXd::Identity(z_cols,z_cols)).determinant(),D*0.5) );
-
-
-                MatrixXd mat=X.transpose() * (Eigen::MatrixXd::Identity(n,n) - (Z * M * Z.transpose())) * X;
-                long double prob_xz_2=mat.trace()*(-1/(2*sigma_x*sigma_x));
-
-                long double prob_xz=prob_xz_1*exp(prob_xz_2);
-
-                Z(i,count)=0;
-                M= update_M(M,Z.row(i));
-                long double prob_xz_10=1/pow((Z.transpose()*Z + sigma_x*sigma_x/sigma_a/sigma_a*Eigen::MatrixXd::Identity(Z.cols(),Z.cols())).determinant(),D*0.5);
-
-                MatrixXd mat0=X.transpose() * (Eigen::MatrixXd::Identity(n,n) - (Z * M * Z.transpose())) * X;
-                long double prob_xz_20=mat.trace()*(-1/(2*sigma_x*sigma_x));
-
-                long double prob_xz0=prob_xz_10*exp(prob_xz_20);
-
-                long double prob_one_temp=prob_zz*prob_xz;
-                long double prob_zero_temp=(1-prob_zz)*prob_xz0;
-                long double prob_param=prob_one_temp/(prob_one_temp+prob_zero_temp);
-
+                long double prob_param=temp_vec(0)/(temp_vec(0)+temp_vec(1));
+                // if(i<3)
+                //  std::cout << "prob_param, quella usata per la bernoulli: " << prob_param << std::endl;
 
 
                 //sample from Bernoulli distribution:
-
                 std::bernoulli_distribution distribution_bern(prob_param);
 
-                Znew(i,j) = distribution_bern(generator) ? 1:0;
-                Z(i,count)=Znew(i,j);
+                Znew(i, j) = distribution_bern(generator) ? 1 : 0;
+                Z(i, count) = Znew(i, j);
+                // if(i<3)
+                // std::cout << "Z(i,count): " << Z(i,count) << std::endl;
+
 
                 ++count;
             }
-
 
             //sample the number of new features:
 
@@ -133,31 +153,40 @@ Rcpp::List GibbsSampler_IBP(const double alpha,const double gamma,const double s
 
 
 
-            M = (Z.transpose() * Z -
+            M = (Z.transpose() * Z +
                  Eigen::MatrixXd::Identity(Z.cols(), Z.cols()) * pow(sigma_x / sigma_a, 2)).inverse();
 
 
             double prob=tgamma(theta+alpha+n)/tgamma(theta+alpha)*tgamma(theta)/tgamma(theta+n)*gamma;
 
-            Eigen::VectorXd prob_new(UB);
-            for (unsigned itt = 0; itt < UB; ++itt) {
+            Eigen::VectorXd prob_new(UB+1);
+            for (unsigned itt = 0; itt <= UB; ++itt) {
                 double poi_prob = poissonProbability(prob, itt);
-                Z(i, j+itt) = 1;
-                M = update_M(M, Z.row(i));
-                long double p_xz_1 = 1 / (pow((Z.transpose() * Z + sigma_x * sigma_x / sigma_a / sigma_a *
-                                                                   Eigen::MatrixXd::Identity(Z.cols(),
-                                                                                             Z.cols())).determinant(),
-                                              D * 0.5));
-                MatrixXd mat = X.transpose() * (Eigen::MatrixXd::Identity(n, n) - (Z * M * Z.transpose())) * X;
-                long double p_xz_2 = mat.trace() * (-1 / (2 * sigma_x * sigma_x));
-
-                double p_xz = p_xz_1 * exp(p_xz_2);
-                prob_new(itt) = poi_prob * p_xz;
+                if(itt>0)
+                     Z(i, Znew.cols()-1 + itt) = 1;
+                M=(Z.transpose()*Z +  Eigen::MatrixXd::Identity(n_tilde,n_tilde)*pow(sigma_x/sigma_a,2)).inverse();
+                long double px_znewfeat= calculate_log_likelihood(Z,X,M,sigma_x,sigma_a,K+itt,D,n);
+                         //if(i<3)
+                            //std::cout << "px_znewfeat: " << px_znewfeat << std::endl;
+                prob_new(itt) = log(poi_prob) + px_znewfeat;
+                         // if(i<3)
+                         //std::cout << "prob_new: " << prob_new << std::endl;
             }
-            // Normalize posterior probabilities
+             // Normalize posterior probabilities
+            long double max2=find_max(prob_new);
+            for (unsigned ii=0; ii<prob_new.size();++ii){
+                prob_new(ii)=prob_new(ii)-max2;
+                prob_new(ii)=exp(prob_new(ii));
+            }
+            
             double sum_posterior = prob_new.sum();
-            for (unsigned l=0;l<prob_new.size();++l) {
+            for (unsigned l = 0; l < prob_new.size(); ++l) {
                 prob_new(l) /= sum_posterior;
+              // if(i<3)
+              //   std::cout << "prob_new per indice = " << l << ": " << prob_new(l) << std::endl;
+            }
+                    
+                    
             }
 
             // Sample the number of new features based on posterior probabilities
@@ -166,11 +195,10 @@ Rcpp::List GibbsSampler_IBP(const double alpha,const double gamma,const double s
 
 
             //update Z-part2:
-            j--;
-            for (; j >= Znew.cols() + new_feat; --j) {
-                Z(i, j) = 0;
-            }
-            
+           for (j=Znew.cols()+new_feat; j < Z.cols(); ++j) {
+                    Z(i, j) = 0;
+                }
+        
             
             
         }
