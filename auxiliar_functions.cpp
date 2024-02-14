@@ -60,7 +60,7 @@ std::pair<Eigen::MatrixXd, Eigen::VectorXd> eliminate_null_columns(Eigen::Matrix
 }
 
 // Function to update the precision matrix M given a new row vector z_i
-Eigen::MatrixXd update_M(const MatrixXd& M, const VectorXd& z_i) {
+Eigen::MatrixXd update_M(MatrixXd& M, const VectorXd& z_i) {
   MatrixXd M_i= M - (M*z_i*z_i.transpose()*M)/((z_i.transpose()*M*z_i) - 1);
   MatrixXd M_mod=M_i - (M_i*z_i*z_i.transpose()*M_i)/((z_i.transpose()*M_i*z_i) +1 );
   return M_mod;
@@ -77,6 +77,8 @@ long double calculate_likelihood(const MatrixXd& Z, const MatrixXd& X, const Mat
     long double det=abs((M*sigma_x*sigma_x).determinant());
     long double den = pow(2*M_PI,n*D/2)*pow(sigma_x,n*D)*pow(sigma_a,K*D);
     return pow(det,D/2)/den*exp(trace*(-1 / (2 * sigma_x * sigma_x)));
+
+
 }
 
 long double calculate_log_likelihood(const MatrixXd& Z, const MatrixXd& X, 
@@ -85,12 +87,15 @@ long double calculate_log_likelihood(const MatrixXd& Z, const MatrixXd& X,
   
   // Compute determinant part
   long double log_det_part = 0.5 * D * log(abs((sigma_x*sigma_x*M).determinant()));
+  //std::cout <<"log_det_part"<<log_det_part << std::endl;
   
   // Compute trace part
   MatrixXd mat = X.transpose() * (Eigen::MatrixXd::Identity(n, n) - (Z * M * Z.transpose())) * X;
   long double trace_part = -0.5 / (sigma_x * sigma_x) * mat.trace();
+  //std::cout <<"trace_part"<<trace_part << std::endl;
   
   long double den_part = n*D/2*log(2*M_PI)+n*D*log(sigma_x)+K*D*log(sigma_a);
+  //std::cout <<"den_part:"<<den_part << std::endl;
   
   return log_det_part + trace_part - den_part;
 }
@@ -257,7 +262,7 @@ MatrixXd sample_A(const MatrixXd& Z, const MatrixXd& X, double sigma_x, double s
   
   // Posterior mean
   //MatrixXd mu_posterior = posterior_var * (Z.transpose() * X) / (sigma_x * sigma_x);
-  MatrixXd mu_posterior = (Z.transpose()*Z + std::pow(sigma_x/sigma_a, 2)*MatrixXd::Identity(K,K)).inverse()*Z.transpose()*X;
+  MatrixXd mu_posterior = (Z.transpose()*Z + (sigma_x*sigma_x/(sigma_a*sigma_a))*MatrixXd::Identity(K,K)).inverse()*Z.transpose()*X;
   
   // Sample from the posterior distribution for A
   MatrixXd new_A(K, D);
@@ -276,43 +281,23 @@ MatrixXd sample_A(const MatrixXd& Z, const MatrixXd& X, double sigma_x, double s
 MatrixXd sample2_A(const MatrixXd& Z, const MatrixXd& X, MatrixXd A, double &sigma_a, double &a, double &b, double &mu_mean, double &mu_var, std::default_random_engine& generator) {
   unsigned K = Z.cols(); // Number of features  
   unsigned D = X.cols(); // Dimension of data
-  double sum1 = 0;
-  double sum2 = 0;
   
   // Posterior precision and variance
   a = a + 0.5*K*D; // update a
-
-  for(i=0;i<K;i++) {
-      for(j=0;j<D;j++) {
-          sum1 = sum1 + std::pow(A[i,j],2);
-      }
-  }
-
-  double row_mean;
-  for(j=0;j<D;j++) {
-      row_mean = 0;
-      for(i=0;i<K;i++) {
-          row_mean = row_mean + A[i,j];
-      }
-      row_mean = row_mean/K;
-      sum2 = sum2 + std::pow(row_mean, 2);
-  }
-    
-  b = b + 0.5*(sum1 + std::pow(K,2)*sum2/(2*(K+1))); // update b
+  b = b + 0.5*(A.transpose()*A).trace(); // update b
   std::gamma_distribution<double> distr(a, b);  
   double precision = pow(distr(generator),-1); // sto facendo sampling da una gamma
-  sigma_a = std::pow(1/precision, 0.5);
+  sigma_a = 1/precision; // this is sigma_A^2, the variance, not the standard deviation
   
   // Posterior mean 
   double a_mean = 0;
   for(unsigned cont=0; cont<K; cont++){
     for(unsigned contt=0; contt<D; contt++)
-      a_mean += A(cont,contt);
+      a_mean += A(cont,contt)/(K*D);
   }
-  a_mean = a_mean/(K*D);
   Eigen::VectorXd mu_posterior(K);  
-  mu_mean = K*a_mean/(K+1);
-  mu_var = mu_var/(K+1);
+  mu_mean = K*a_mean/(K-1);
+  mu_var = mu_var/((K-1)*D);
   for(unsigned k=0; k<K; ++k) {
     std::normal_distribution<double> distr(mu_mean, mu_var);
     mu_posterior(k) = distr(generator);
@@ -322,7 +307,7 @@ MatrixXd sample2_A(const MatrixXd& Z, const MatrixXd& X, MatrixXd A, double &sig
   MatrixXd new_A(K, D);  
   for(unsigned k=0; k<K; ++k) {
     for(unsigned d=0; d<D; ++d) {
-      std::normal_distribution<double> distr(mu_posterior(d), std::pow(sigma_a,2));
+      std::normal_distribution<double> distr(mu_posterior(d), sigma_a);
       new_A(k,d) = distr(generator); // sampling dei valori di A elemento per elemento    
     }
   }  

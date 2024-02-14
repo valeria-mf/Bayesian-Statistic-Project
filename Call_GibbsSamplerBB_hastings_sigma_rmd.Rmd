@@ -175,10 +175,10 @@ Modifico proposal_variance_factor_sigma_x e proposal_variance_factor_sigma_a in 
 
 ```{r}
 #Genero Z
-alpha=-1
-theta=4
-N=21
-n_tilde=24
+alpha=-2
+theta=6
+N=5
+n_tilde=7
 Z_true= generateRandomMatrix(N, alpha, theta, n_tilde)
 K=sum(colSums(Z_true) != 0) #numero colonne diverse da 0 di Z
 K
@@ -186,17 +186,17 @@ colonne_non_zero <- colSums(Z_true) != 0
 Z_true <- Z_true[, colonne_non_zero]   #rimuovo le colonne pari a zero
 
 #X e A
-D=30
-sigma_x=2
-sigma_a=5
+D=5
+sigma_x=0.1
+sigma_a=1
 mean_a=0
-n_iter=1000
+n_iter=2000
 initial_iters=100
 a_x= 1
 b_x= 1
 a_a=1
 b_a=1
-proposal_variance_factor_sigma_x=0.01
+proposal_variance_factor_sigma_x=1
 proposal_variance_factor_sigma_a=1
 
 
@@ -218,6 +218,52 @@ result$K_vector
 print(paste("Acceptance probability for sigma_a:", result$acceptance_probability_a))
 print(paste("Acceptance probability for sigma_x:", result$acceptance_probability_x))
 ```
+
+```{r}
+library(ggplot2)
+library(patchwork)
+
+# Creazione del dataframe con i dati
+data <- data.frame(
+  iteration = 1:(n_iter + initial_iters),
+  K = result$K_vector,
+  logPXZ = result$logPXZ_vector,
+  sigmaA = result$sigmaA_vector,
+  sigmaX = result$sigmaX_vector
+)
+
+# Creazione dei grafici individuali
+plot_k <- ggplot(data, aes(x = iteration, y = K)) +
+  geom_line() +
+  labs(title = 'Number of latent features', y = 'K') +
+  ylim(6,9)+
+  geom_vline(xintercept = initial_iters, linetype = 'dashed', color = 'red')
+
+plot_logPXZ <- ggplot(data, aes(x = iteration, y = logPXZ)) +
+  geom_line() +
+  labs(title = 'log P(X, Z)', y = 'log P(X, Z)') +
+  ylim(-200,-100)+
+  geom_vline(xintercept = initial_iters, linetype = 'dashed', color = 'red')
+
+plot_sigmaA <- ggplot(data, aes(x = iteration, y = sigmaA)) +
+  geom_line() +
+  labs(title = 'sigma A', y = 'sigma A') +
+  ylim(0,30)+
+  geom_vline(xintercept = initial_iters, linetype = 'dashed', color = 'red')
+
+plot_sigmaX <- ggplot(data, aes(x = iteration, y = sigmaX)) +
+  geom_line() +
+  labs(title = 'sigma X', y = 'sigma X') +
+  ylim(0,10)+
+  geom_vline(xintercept = initial_iters, linetype = 'dashed', color = 'red')
+
+# Combina i grafici nella stessa finestra
+combined_plots <- plot_k + plot_logPXZ + plot_sigmaA + plot_sigmaX
+combined_plots
+
+
+```
+
 
 ```{r}
 plot_dual_graphs(n_iter, initial_iters, result)

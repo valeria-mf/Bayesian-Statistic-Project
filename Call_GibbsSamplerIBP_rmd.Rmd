@@ -162,17 +162,17 @@ generateRandomMatrix <- function(N, alpha, theta, gamma, numero_colonne) {
 Facciamo una prova rispettando i vincoli gamma>=0, 0<=alpha<=1 e theta>=-alpha.
 
 ```{r}
-generateRandomMatrix(4, 0.1, 1.2, 1.2, 10)
+generateRandomMatrix(8, 0.2, 1, 1.2, 10)
 ```
 
 
 ```{r}
 #Genero Z
-alpha=0.1
-gamma=1.2
-theta=1.2
-N=4
-numero_colonne=6  #questo valore deve essere sufficientemente grande
+alpha=0.2
+gamma=1
+theta=1
+N=5
+numero_colonne=10 #questo valore deve essere sufficientemente grande
 Z_true= generateRandomMatrix(N, alpha, theta, gamma, numero_colonne)
 K=sum(colSums(Z_true) != 0) #numero colonne diverse da 0 di Z
 K
@@ -180,13 +180,13 @@ colonne_non_zero <- colSums(Z_true) != 0
 Z_true <- Z_true[, colonne_non_zero]   #rimuovo le colonne pari a zero
 
 #X e A
-D=12
+D=3
 sigma_a=3
 sigma_x=1.5
 mean_a=0
-n_iter=1000
+n_iter=2000
 initial_iters=100
-UB=6
+UB=5
 
 
 
@@ -217,6 +217,43 @@ result <- GibbsSampler_IBP(alpha, gamma, sigma_a, sigma_x,  theta,  N,
 result$K_vector
 
 ```
+
+```{r}
+
+library(cowplot)
+
+# Il resto del tuo codice rimane invariato
+data <- data.frame(iteration = 1:(n_iter + initial_iters),
+                   K = result$K_vector,
+                   logPXZ = result$logPXZ_vector)
+
+# Creazione dei grafici
+plot_k <- ggplot(data, aes(x = iteration, y = K)) +
+  geom_line() +
+  labs(title = 'Number of latent features',
+       x = 'Iteration',
+       y = 'K+') +
+  theme_minimal() +
+  geom_vline(xintercept = initial_iters, linetype = 'dashed', color = 'red') 
+ 
+
+
+plot_logPXZ <- ggplot(data, aes(x = iteration, y = logPXZ)) +
+  geom_line() +
+  labs(title = 'log P(X, Z)',
+       x = 'Iteration',
+       y = 'log P(X, Z)') +
+  theme_minimal() +
+  geom_vline(xintercept = initial_iters, linetype = 'dashed', color = 'red')
+
+# Combina i due grafici sopra e sotto
+combined_plot <- plot_grid(plot_k, plot_logPXZ, nrow = 2)
+
+# Visualizza il grafico combinato
+print(combined_plot)
+
+```
+
 
 ```{r}
 plot_dual_graphs(n_iter, initial_iters, result)

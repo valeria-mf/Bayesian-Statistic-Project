@@ -31,34 +31,32 @@ Rcpp::List GibbsSampler_betabernoulli( double alpha, double theta, double sigma_
 
   std::default_random_engine generator;
 
-  // D:
-    const unsigned D = X.cols();
+
  
    // Initialization of Z
     MatrixXd Z = Eigen::MatrixXd::Zero(n, n_tilde);
+    
+
    
-    std::default_random_engine generator;
+
 
     std::bernoulli_distribution Z_initializer(0.5);
     for(unsigned i=0; i< n ; ++i)
        // for(unsigned j=0; j<n_tilde;++j)
             Z(i, 0) = Z_initializer(generator) ? 1 : 0;
     //std::cout << Z << std::endl;
-    /*
-    Z(0,1)=1;
-    Z(1,2)=1;
-    Z(2,0)=1;
-    Z(3,1)=1;
-    Z(4,3)=1;
-    Z(5,3)=1;
-    Z(6,0)=1;
-    Z(7,2)=1;
-    std::cout << "Print di Zinizializzata: " << Z << std::endl;*/
-   
+  
+  
+  // D:
+  const unsigned D = X.cols();
+  
+  //Initialization of A:
+  MatrixXd A = Eigen::MatrixXd::Zero(n_tilde, D);
+  std::normal_distribution<double> A_initializer(0,1);
+  for(unsigned i=0; i<n_tilde;++i)
+    for(unsigned j=0;j<D;++j)
+      A(i, j) = A_initializer(generator);
 
-    
-    // D:
-    const unsigned D = A.cols();
 
     //create a set to put the generated Z matrices:
     matrix_collection Ret;
@@ -67,8 +65,13 @@ Rcpp::List GibbsSampler_betabernoulli( double alpha, double theta, double sigma_
     VectorXd K_vector(n_iter+initial_iters);
     //create a vector to put the log[P(X|Z)]
     VectorXd logPXZ_vector(n_iter+initial_iters);
+    VectorXd sigmaA_vector(n_iter+initial_iters);
+    VectorXd sigmaX_vector(n_iter+initial_iters);
     Eigen::MatrixXd Expected_A_given_XZ;
-    
+    int accepted_iterations_x=0;
+    int accepted_iterations_a=0;
+    long double acceptance_probability_x;
+    long double acceptance_probability_a;
 
 
 

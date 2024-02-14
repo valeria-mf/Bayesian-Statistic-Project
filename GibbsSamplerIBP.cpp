@@ -24,9 +24,11 @@ Rcpp::List GibbsSampler_IBP(const double alpha,const double gamma,const double s
     Eigen::Map<Eigen::MatrixXd> A(Rcpp::as<Eigen::Map<Eigen::MatrixXd>>(mat_A));
     Eigen::Map<Eigen::MatrixXd> X(Rcpp::as<Eigen::Map<Eigen::MatrixXd>>(mat_X));
     
-
+    
+    
     // Initialization of Z
     MatrixXd Z(n,1);
+    std::bernoulli_distribution Z_initializer(0.5);
     for(unsigned i=0; i< n; ++i)
          Z(i, 0) = Z_initializer(generator) ? 1 : 0;
     
@@ -98,7 +100,7 @@ Rcpp::List GibbsSampler_IBP(const double alpha,const double gamma,const double s
                 M=(Z.transpose()*Z +  Eigen::MatrixXd::Identity(Z.cols(),Z.cols())*pow(sigma_x/sigma_a,2)).inverse();
                 // if(i<3)
                 // std::cout << "Update di M quando z_" << i << count << " vale 0:\n " << M << std::endl;
-                long double prob_xz0 = calculate_log_likelihood(Z,X,M,sigma_x,sigma_a,n_tilde,D,n);
+                long double prob_xz0 = calculate_log_likelihood(Z,X,M,sigma_x,sigma_a,K,D,n);
                 //  if(i<3)
                 // std::cout << "Print di prob_xz, log_likelihood per z=0: " << prob_xz0 << std::endl;
                 
@@ -164,7 +166,7 @@ Rcpp::List GibbsSampler_IBP(const double alpha,const double gamma,const double s
                 double poi_prob = poissonProbability(prob, itt);
                 if(itt>0)
                      Z(i, Znew.cols()-1 + itt) = 1;
-                M=(Z.transpose()*Z +  Eigen::MatrixXd::Identity(n_tilde,n_tilde)*pow(sigma_x/sigma_a,2)).inverse();
+                M=(Z.transpose()*Z +  Eigen::MatrixXd::Identity(K,K)*pow(sigma_x/sigma_a,2)).inverse();
                 long double px_znewfeat= calculate_log_likelihood(Z,X,M,sigma_x,sigma_a,K+itt,D,n);
                          //if(i<3)
                             //std::cout << "px_znewfeat: " << px_znewfeat << std::endl;
@@ -187,7 +189,7 @@ Rcpp::List GibbsSampler_IBP(const double alpha,const double gamma,const double s
             }
                     
                     
-            }
+            
 
             // Sample the number of new features based on posterior probabilities
             std::discrete_distribution<int> distribution(prob_new.data(), prob_new.data() + prob_new.size());
@@ -195,7 +197,7 @@ Rcpp::List GibbsSampler_IBP(const double alpha,const double gamma,const double s
 
 
             //update Z-part2:
-           for (j=Znew.cols()+new_feat; j < Z.cols(); ++j) {
+           for (unsigned j=Znew.cols()+new_feat; j < Z.cols(); ++j) {
                     Z(i, j) = 0;
                 }
         
@@ -213,7 +215,6 @@ Rcpp::List GibbsSampler_IBP(const double alpha,const double gamma,const double s
         //Per l'IBP utilizzo Eq 14 e 26:
 
         
-        int D = A.cols();
 
         Eigen::MatrixXd Zplus = eliminate_null_columns(Z).first;
         int Kplus = Zplus.cols();

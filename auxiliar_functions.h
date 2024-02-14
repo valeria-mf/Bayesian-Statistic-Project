@@ -29,7 +29,7 @@ unsigned count_nonzero(const Eigen::VectorXd& m);
 std::pair<Eigen::MatrixXd, Eigen::VectorXd> eliminate_null_columns(Eigen::MatrixXd &Z);
 
 // Function to update the precision matrix M given a new row vector z_i
-Eigen::MatrixXd update_M(const MatrixXd& M, const VectorXd& z_i);
+Eigen::MatrixXd update_M(MatrixXd& M, const VectorXd& z_i);
 
 // Function to calculate the likelihood of the data X given the latent feature matrix Z
 long double calculate_likelihood(const MatrixXd& Z, const MatrixXd& X, const MatrixXd& M, double sigma_x,double sigma_a,unsigned K,unsigned D,int n);
